@@ -1,0 +1,1155 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Kushki Card Present API - Chile",
+    "version": "1.0.0",
+    "description": "## Unified API Documentation for Kushki Card Present Operations in Chile\n\nThis unified specification combines all Kushki Card Present APIs available for Chile, including:\n\n- **Cloud Terminal API**: Send payment requests to terminals over the internet\n- **Transaction Search**: Query and filter transaction history\n- **Voids & Refunds**: Cancel or refund authorized transactions\n\n### Service Availability\n\n🇨🇱 **Chile**\n\n### Documentation Structure\n\nThis API documentation includes:\n- Complete API endpoints with examples\n- Shared data models and schemas\n- Webhook notifications\n- Error codes and handling\n- Integration guides\n\n### External Documentation\n\nFor detailed guides and tutorials, visit:\n- [Webhooks Guide](https://github.com/marcoespin/CARD-PRESENT-CHILE/blob/main/docs/webhooks/introduction.md)\n- [Error Codes](https://github.com/marcoespin/CARD-PRESENT-CHILE/blob/main/docs/errors.md)\n- [Release Notes](https://github.com/marcoespin/CARD-PRESENT-CHILE/blob/main/docs/release-notes/new.md)\n\n### Requirements\n\n- Compatible reader terminal\n- API credentials (X-API-Key / Private-Credential-Id)\n- Stable internet connection\n- Firewall configuration for Kushki domains\n\n### Environments\n\n| Environment | Purpose | Base URL |\n|------------|---------|----------|\n| Dev | Testing & Development | https://api-uat.kushkipagos.com |\n| Live | Production | https://api.kushkipagos.com |\n| Live (Cloud Terminal) | Cloud Terminal Production | https://integrations.payment.haulmer.com |\n\n---\n\n## Getting Started\n\n### Cloud Terminal API\n\nCreate payment experiences by sending payment requests to terminals over the internet:\n\n1. **Collect payments**: Send payment request with amount and terminal ID\n2. **Check status**: Query payment request status\n3. **Receive webhooks**: Get real-time transaction results\n\n### Transaction Search\n\nRetrieve transaction history with flexible filtering:\n\n- Filter by BIN, card number, dates, transaction type\n- Paginated results\n- Device-specific queries\n\n### Voids & Refunds\n\nCancel or refund transactions:\n\n- **Void**: Same-day cancellation (before 11:59 PM)\n- **Refund**: Post-day cancellation (up to 120 days)\n- Full or partial amounts supported\n\n---\n\nContact your **account manager** for credentials and support.",
+    "contact": {
+      "name": "Kushki Support",
+      "url": "https://kushkipagos.com"
+    },
+    "x-logo": {
+      "url": "https://github.com/marcoespin/CARD-PRESENT-CHILE/raw/main/assets/images/powered-by-Kushki.svg",
+      "altText": "Powered by Kushki"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://integrations.payment.haulmer.com",
+      "description": "Cloud Terminal API - Production"
+    },
+    {
+      "url": "https://api.kushkipagos.com",
+      "description": "Transaction Search & Voids/Refunds - Production"
+    },
+    {
+      "url": "https://api-uat.kushkipagos.com",
+      "description": "Development & Testing Environment"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Cloud Terminal API",
+      "description": "Send payment requests to terminals over the internet and check their status."
+    },
+    {
+      "name": "Transaction Search",
+      "description": "Query transaction history with filters or by device."
+    },
+    {
+      "name": "Voids & Refunds",
+      "description": "Cancel or refund authorized transactions."
+    }
+  ],
+  "paths": {
+    "/PaymentRequest/Create": {
+      "post": {
+        "tags": ["Cloud Terminal API"],
+        "summary": "Create payment request",
+        "description": "Send a payment request from your POS to a compatible terminal over the internet.\n\n**Rate limit**: 1 request per minute per terminal\n\n**Maximum pending requests**: 5 per terminal",
+        "operationId": "create-payment-request",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentRequest"
+              },
+              "examples": {
+                "basic-payment": {
+                  "summary": "Basic payment request",
+                  "value": {
+                    "idempotencyKey": "ef59617f-7633-4aca-965e-e9993f66bdbc",
+                    "amount": 1600,
+                    "device": "TJ44245N20440",
+                    "description": "Servicio de afiliación",
+                    "dteType": 48
+                  }
+                },
+                "with-custom-fields": {
+                  "summary": "Payment with custom fields",
+                  "value": {
+                    "idempotencyKey": "a1b2c3d4-5678-90ef-ghij-klmnopqrstuv",
+                    "amount": 25980,
+                    "device": "PB04209860004",
+                    "description": "Compra en tienda",
+                    "dteType": 48,
+                    "extraData": {
+                      "netAmount": 21815,
+                      "customFields": [
+                        {
+                          "name": "ID Orden",
+                          "value": "ORD-12345",
+                          "print": true
+                        },
+                        {
+                          "name": "Mesa",
+                          "value": "15",
+                          "print": true
+                        }
+                      ],
+                      "sourceName": "MiPOS",
+                      "sourceVersion": "2.3.1"
+                    }
+                  }
+                },
+                "exempt-amount": {
+                  "summary": "Payment with exempt amount",
+                  "value": {
+                    "idempotencyKey": "xyz123-4567-89ab-cdef-ghijklmnopqr",
+                    "amount": 5000,
+                    "device": "TJ44245N20440",
+                    "description": "Producto exento",
+                    "dteType": 99,
+                    "extraData": {
+                      "exemptAmount": 5000
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Payment request created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentRequestResponse"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "idempotencyKey": "ef59617f-7633-4aca-965e-e9993f66bdbc",
+                      "status": "pending",
+                      "amount": 1600,
+                      "deviceId": 690,
+                      "description": "Servicio de afiliación",
+                      "extraData": {
+                        "exemptAmount": 1600,
+                        "customFields": [
+                          {
+                            "name": "Contacto",
+                            "value": "9 51221345",
+                            "print": true
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitExceeded"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/RemotePayment/v2/GetPaymentRequest/{idempotencyKey}": {
+      "get": {
+        "tags": ["Cloud Terminal API"],
+        "summary": "Get payment request status",
+        "description": "Retrieve the status of a payment request using its idempotency key.\n\n**Possible statuses:**\n- `sent`: Payment request received in the payment app\n- `pending`: Waiting for payment information\n- `canceled`: Request cancelled\n- `processing`: Processing payment information\n- `failed`: Error during processing\n- `completed`: Payment processed successfully",
+        "operationId": "get-payment-request-status",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "idempotencyKey",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier of the payment request",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "ef59617f-7633-4aca-965e-e9993f66bdbc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment request status retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentRequestStatusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/pos-analytics/v1/transactions/search": {
+      "post": {
+        "tags": ["Transaction Search"],
+        "summary": "Search transactions with filters",
+        "description": "Search for transactions with optional filters. Returns up to 10,000 transactions sorted by most recent first.\n\n**Available filters:**\n- BIN number\n- Transaction type\n- Client transaction ID\n- Transaction reference\n- Last 4 digits\n- Date range",
+        "operationId": "search-transactions",
+        "security": [
+          {
+            "PrivateCredentialAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionSearchRequest"
+              },
+              "examples": {
+                "with-filters": {
+                  "summary": "Search with multiple filters",
+                  "value": {
+                    "page": 1,
+                    "size": 10,
+                    "filters": {
+                      "bin": "541333",
+                      "last_four_digits": "0653",
+                      "transaction_type": "preAuth",
+                      "start_date": 1712286000000,
+                      "end_date": 1712322035152
+                    }
+                  }
+                },
+                "without-filters": {
+                  "summary": "Get recent transactions",
+                  "value": {
+                    "page": 1,
+                    "size": 10
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transactions retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionSearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/Transaction/Latest/{device}": {
+      "get": {
+        "tags": ["Transaction Search"],
+        "summary": "Get latest transactions by device",
+        "description": "Retrieve the last 15 authorized transactions for a specific device. The device must be linked to your merchant.",
+        "operationId": "get-latest-transactions-by-device",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "device",
+            "in": "path",
+            "required": true,
+            "description": "Device serial number",
+            "schema": {
+              "type": "string",
+              "example": "PB04209860004"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Latest transactions retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceTransactionsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/pos/v1/transaction": {
+      "post": {
+        "tags": ["Voids & Refunds"],
+        "summary": "Void a transaction",
+        "description": "Void an authorized transaction. Must be submitted on the same day before 11:59 PM.\n\nSupports partial voids by sending the `amount` object with a value less than the authorized amount.",
+        "operationId": "void-transaction",
+        "security": [
+          {
+            "PrivateCredentialAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoidRequest"
+              },
+              "examples": {
+                "full-void": {
+                  "summary": "Full void",
+                  "value": {
+                    "omit_card": true,
+                    "transaction_mode": "Void",
+                    "transaction_type": "charge",
+                    "client_transaction_id": "6680eadc-6c8d-44aa-8ca0-18e061c1472a",
+                    "transaction_reference": "f2f29080-0214-42c0-95a5-77ecf3434cd7"
+                  }
+                },
+                "partial-void": {
+                  "summary": "Partial void",
+                  "value": {
+                    "amount": {
+                      "iva": 0,
+                      "currency": "CLP",
+                      "subtotal_iva": 0,
+                      "subtotal_iva0": 60000
+                    },
+                    "omit_card": true,
+                    "transaction_mode": "Void",
+                    "transaction_type": "charge",
+                    "client_transaction_id": "6680eadc-6c8d-44aa-8ca0-18e061c1472a",
+                    "transaction_reference": "f2f29080-0214-42c0-95a5-77ecf3434cd7"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Void processed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoidRefundResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/pos/v1/refund": {
+      "post": {
+        "tags": ["Voids & Refunds"],
+        "summary": "Refund a transaction",
+        "description": "Refund an authorized transaction after the authorization day. Maximum time allowed: 120 days.\n\nSupports partial refunds by sending the `amount` object with a value less than the authorized amount.",
+        "operationId": "refund-transaction",
+        "security": [
+          {
+            "PrivateCredentialAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefundRequest"
+              },
+              "examples": {
+                "full-refund": {
+                  "summary": "Full refund",
+                  "value": {
+                    "omit_card": true,
+                    "transaction_mode": "Authorization",
+                    "transaction_type": "refund",
+                    "client_transaction_id": "6680eadc-6c8d-44aa-8ca0-18e061c1472a",
+                    "transaction_reference": "f2f29080-0214-42c0-95a5-77ecf3434cd7"
+                  }
+                },
+                "partial-refund": {
+                  "summary": "Partial refund",
+                  "value": {
+                    "amount": {
+                      "iva": 0,
+                      "currency": "CLP",
+                      "subtotal_iva": 0,
+                      "subtotal_iva0": 60000
+                    },
+                    "omit_card": true,
+                    "transaction_mode": "Authorization",
+                    "transaction_type": "refund",
+                    "client_transaction_id": "6680eadc-6c8d-44aa-8ca0-18e061c1472a",
+                    "transaction_reference": "f2f29080-0214-42c0-95a5-77ecf3434cd7"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Refund processed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoidRefundResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API Key for Cloud Terminal operations"
+      },
+      "PrivateCredentialAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Private-Credential-Id",
+        "description": "Private credential for transaction operations"
+      }
+    },
+    "schemas": {
+      "PaymentRequest": {
+        "type": "object",
+        "required": ["idempotencyKey", "amount", "device"],
+        "properties": {
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 36,
+            "description": "Unique key per transaction (UUID format recommended)",
+            "example": "ef59617f-7633-4aca-965e-e9993f66bdbc"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 99999999,
+            "description": "Transaction amount in local currency. Amount = netAmount + exemptAmount",
+            "example": 25980
+          },
+          "device": {
+            "type": "string",
+            "description": "Terminal serial number",
+            "example": "TJ44245N20440"
+          },
+          "description": {
+            "type": "string",
+            "description": "Payment description",
+            "example": "Compra en tienda"
+          },
+          "dteType": {
+            "$ref": "#/components/schemas/DteType"
+          },
+          "extraData": {
+            "$ref": "#/components/schemas/ExtraData"
+          }
+        }
+      },
+      "PaymentRequestResponse": {
+        "type": "object",
+        "properties": {
+          "idempotencyKey": {
+            "type": "string",
+            "example": "ef59617f-7633-4aca-965e-e9993f66bdbc"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PaymentStatus"
+          },
+          "amount": {
+            "type": "integer",
+            "example": 1600
+          },
+          "deviceId": {
+            "type": "integer",
+            "example": 690
+          },
+          "description": {
+            "type": "string",
+            "example": "Servicio de afiliación"
+          },
+          "extraData": {
+            "$ref": "#/components/schemas/ExtraData"
+          }
+        }
+      },
+      "PaymentRequestStatusResponse": {
+        "type": "object",
+        "properties": {
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PaymentStatus"
+          },
+          "amount": {
+            "type": "integer"
+          },
+          "device": {
+            "type": "string"
+          },
+          "dteType": {
+            "$ref": "#/components/schemas/DteType"
+          },
+          "extraData": {
+            "$ref": "#/components/schemas/ExtraData"
+          },
+          "transactionReference": {
+            "type": "string",
+            "description": "Transaction reference for voids/refunds"
+          },
+          "acquirerId": {
+            "type": "string",
+            "description": "Acquirer's identifier (corresponds to ticket_number in Kushki)"
+          }
+        }
+      },
+      "PaymentStatus": {
+        "type": "string",
+        "enum": ["sent", "pending", "canceled", "processing", "failed", "completed"],
+        "description": "Payment request status"
+      },
+      "DteType": {
+        "type": "integer",
+        "enum": [0, 33, 48, 99],
+        "description": "Documento Tributario Electrónico type:\n- 0: Comprobante afecto (default)\n- 33: Factura afecta\n- 48: Boleta afecta\n- 99: Exempt document (requires exemptAmount = amount)",
+        "example": 48
+      },
+      "ExtraData": {
+        "type": "object",
+        "properties": {
+          "taxIdnValidation": {
+            "type": "string",
+            "description": "Merchant's RUT with hyphen and check digit",
+            "example": "12345678-9"
+          },
+          "netAmount": {
+            "type": "integer",
+            "description": "Transaction amount (IVA included) for SII reporting"
+          },
+          "exemptAmount": {
+            "type": "integer",
+            "description": "Exempt amount for SII reporting"
+          },
+          "sourceName": {
+            "type": "string",
+            "maxLength": 60,
+            "description": "Package name of your app",
+            "example": "com.example.mypos"
+          },
+          "sourceVersion": {
+            "type": "string",
+            "maxLength": 40,
+            "description": "Version number of your application",
+            "example": "2.3.1"
+          },
+          "customFields": {
+            "type": "array",
+            "maxItems": 5,
+            "description": "Additional information (max 5 fields, 256 chars total)",
+            "items": {
+              "$ref": "#/components/schemas/CustomField"
+            }
+          }
+        }
+      },
+      "CustomField": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 28,
+            "description": "Field name (cannot contain & or /)"
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 28,
+            "description": "Field value (cannot contain & or /)"
+          },
+          "print": {
+            "type": "boolean",
+            "description": "Whether to print on ticket"
+          }
+        }
+      },
+      "Amount": {
+        "type": "object",
+        "required": ["currency", "iva", "subtotal_iva", "subtotal_iva0"],
+        "properties": {
+          "currency": {
+            "type": "string",
+            "enum": ["CLP", "MXN", "COP", "USD", "PEN"],
+            "example": "CLP"
+          },
+          "iva": {
+            "type": "number",
+            "description": "IVA tax amount (0 if no tax)"
+          },
+          "subtotal_iva": {
+            "type": "number",
+            "description": "Subtotal with IVA (0 if no tax)"
+          },
+          "subtotal_iva0": {
+            "type": "number",
+            "description": "Subtotal without IVA"
+          },
+          "tip": {
+            "type": "number",
+            "description": "Tip amount"
+          },
+          "extra_taxes": {
+            "$ref": "#/components/schemas/ExtraTaxes"
+          }
+        }
+      },
+      "ExtraTaxes": {
+        "type": "object",
+        "properties": {
+          "airport_tax": {
+            "type": "number",
+            "description": "Airport tax"
+          },
+          "iac": {
+            "type": "number",
+            "description": "Impuesto Agregado al Consumo"
+          },
+          "ice": {
+            "type": "number",
+            "description": "Impuesto a Consumos Especiales"
+          },
+          "travel_agency": {
+            "type": "number",
+            "description": "Travel agency tax (airlines)"
+          }
+        }
+      },
+      "TransactionSearchRequest": {
+        "type": "object",
+        "required": ["page", "size"],
+        "properties": {
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Page number",
+            "example": 1
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Items per page",
+            "example": 10
+          },
+          "filters": {
+            "$ref": "#/components/schemas/TransactionFilters"
+          }
+        }
+      },
+      "TransactionFilters": {
+        "type": "object",
+        "properties": {
+          "bin": {
+            "type": "string",
+            "description": "Card BIN number",
+            "example": "541333"
+          },
+          "transaction_type": {
+            "type": "string",
+            "enum": ["balanceInquiry", "capture", "charge", "checkIn", "checkout", "preAuth", "reAuthorization", "tip", "posTip"],
+            "description": "Transaction type"
+          },
+          "client_transaction_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Client-generated UUID"
+          },
+          "transaction_reference": {
+            "type": "string",
+            "description": "Kushki transaction reference"
+          },
+          "last_four_digits": {
+            "type": "string",
+            "pattern": "^[0-9]{4}$",
+            "description": "Last 4 digits of card",
+            "example": "0653"
+          },
+          "start_date": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Start date (Unix timestamp in milliseconds)",
+            "example": 1712286000000
+          },
+          "end_date": {
+            "type": "integer",
+            "format": "int64",
+            "description": "End date (Unix timestamp in milliseconds)",
+            "example": 1712322035152
+          }
+        }
+      },
+      "TransactionSearchResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            }
+          }
+        }
+      },
+      "Transaction": {
+        "type": "object",
+        "properties": {
+          "transaction_id": {
+            "type": "string"
+          },
+          "transaction_reference": {
+            "type": "string"
+          },
+          "client_transaction_id": {
+            "type": "string"
+          },
+          "ticket_number": {
+            "type": "string"
+          },
+          "transaction_type": {
+            "type": "string"
+          },
+          "transaction_status": {
+            "type": "string"
+          },
+          "created": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Amount"
+          },
+          "request_amount": {
+            "type": "number"
+          },
+          "approved_transaction_amount": {
+            "type": "number"
+          },
+          "masked_credit_card": {
+            "type": "string"
+          },
+          "last_four_digits": {
+            "type": "string"
+          },
+          "bin_card": {
+            "type": "string"
+          },
+          "payment_brand": {
+            "type": "string"
+          },
+          "payment_method": {
+            "type": "string"
+          },
+          "card_country": {
+            "type": "string"
+          },
+          "foreign_card": {
+            "type": "boolean"
+          },
+          "approval_code": {
+            "type": "string"
+          },
+          "authorization_code": {
+            "type": "string"
+          },
+          "merchant_id": {
+            "type": "string"
+          },
+          "merchant_name": {
+            "type": "string"
+          },
+          "acquirer_bank": {
+            "type": "string"
+          },
+          "issuing_bank": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "mcc": {
+            "type": "string"
+          }
+        }
+      },
+      "DeviceTransactionsResponse": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/DeviceTransaction"
+        }
+      },
+      "DeviceTransaction": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-09-26T17:45:38.7631813"
+          },
+          "cardLast4": {
+            "type": "string",
+            "example": "4002"
+          },
+          "paymentType": {
+            "type": "string",
+            "enum": ["CREDIT", "DEBIT"],
+            "example": "CREDIT"
+          },
+          "totalAmount": {
+            "type": "integer",
+            "example": 112
+          },
+          "customFields": {
+            "type": "string",
+            "description": "Custom fields in format: count&name&value/count&name&value",
+            "example": "1&ID Propio&Prop-09716/1&Producto&Pelota"
+          },
+          "sequenceNumber": {
+            "type": "string",
+            "example": "800004830700"
+          }
+        }
+      },
+      "VoidRequest": {
+        "type": "object",
+        "required": ["transaction_mode", "transaction_type", "client_transaction_id", "transaction_reference"],
+        "properties": {
+          "amount": {
+            "$ref": "#/components/schemas/Amount",
+            "description": "Optional: for partial void, amount must be less than authorized amount"
+          },
+          "omit_card": {
+            "type": "boolean",
+            "description": "Set to true to omit card information",
+            "example": true
+          },
+          "transaction_mode": {
+            "type": "string",
+            "enum": ["Void"],
+            "example": "Void"
+          },
+          "transaction_type": {
+            "type": "string",
+            "enum": ["charge"],
+            "example": "charge"
+          },
+          "client_transaction_id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "6680eadc-6c8d-44aa-8ca0-18e061c1472a"
+          },
+          "transaction_reference": {
+            "type": "string",
+            "description": "Transaction reference to void",
+            "example": "f2f29080-0214-42c0-95a5-77ecf3434cd7"
+          }
+        }
+      },
+      "RefundRequest": {
+        "type": "object",
+        "required": ["transaction_mode", "transaction_type", "client_transaction_id", "transaction_reference"],
+        "properties": {
+          "amount": {
+            "$ref": "#/components/schemas/Amount",
+            "description": "Optional: for partial refund, amount must be less than authorized amount"
+          },
+          "omit_card": {
+            "type": "boolean",
+            "description": "Set to true to omit card information",
+            "example": true
+          },
+          "transaction_mode": {
+            "type": "string",
+            "enum": ["Authorization"],
+            "example": "Authorization"
+          },
+          "transaction_type": {
+            "type": "string",
+            "enum": ["refund"],
+            "example": "refund"
+          },
+          "client_transaction_id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "6680eadc-6c8d-44aa-8ca0-18e061c1472a"
+          },
+          "transaction_reference": {
+            "type": "string",
+            "description": "Transaction reference to refund",
+            "example": "f2f29080-0214-42c0-95a5-77ecf3434cd7"
+          }
+        }
+      },
+      "VoidRefundResponse": {
+        "type": "object",
+        "properties": {
+          "transaction_id": {
+            "type": "string"
+          },
+          "transaction_reference": {
+            "type": "string"
+          },
+          "transaction_status": {
+            "type": "string"
+          },
+          "response_code": {
+            "type": "string"
+          },
+          "approval_code": {
+            "type": "string"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Amount"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": true
+          },
+          "code": {
+            "type": "string",
+            "example": "MR-110"
+          },
+          "message": {
+            "type": "string",
+            "example": "Transaction Amount is less than allowed minimum"
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad Request - Invalid parameters",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "invalid-amount": {
+                "summary": "Invalid amount",
+                "value": {
+                  "error": true,
+                  "code": "MR-110",
+                  "message": "Transaction Amount is less than allowed minimum"
+                }
+              },
+              "device-not-found": {
+                "summary": "Device not found",
+                "value": {
+                  "error": true,
+                  "code": "MR-100",
+                  "message": "Device for API-Key doesn't exist"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Unauthorized - Invalid or missing credentials",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "missing-api-key": {
+                "summary": "Missing API Key",
+                "value": {
+                  "error": true,
+                  "code": "INT-MIDDLEWARE-012",
+                  "message": "X-API-Key Header not found."
+                }
+              },
+              "invalid-api-key": {
+                "summary": "Invalid API Key",
+                "value": {
+                  "error": true,
+                  "code": "INT-MIDDLEWARE-010",
+                  "message": "Unknown API Key."
+                }
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Not Found - Resource doesn't exist",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "payment-request-not-found": {
+                "summary": "Payment request not found",
+                "value": {
+                  "error": true,
+                  "code": "MR-160",
+                  "message": "Payment Request doesn't exist"
+                }
+              }
+            }
+          }
+        }
+      },
+      "RateLimitExceeded": {
+        "description": "Too Many Requests - Rate limit exceeded",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "rate-limit": {
+                "summary": "Rate limit exceeded",
+                "value": {
+                  "error": true,
+                  "code": "MR-180",
+                  "message": "Payment Request Queue for the device is full"
+                }
+              }
+            }
+          }
+        }
+      },
+      "InternalServerError": {
+        "description": "Internal Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "server-error": {
+                "summary": "Server error",
+                "value": {
+                  "error": true,
+                  "code": "MR-170",
+                  "message": "Oops! An unexpected error occurred"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "x-webhooks": {
+    "transaction-completed": {
+      "post": {
+        "summary": "Transaction completed webhook",
+        "description": "Webhook notification sent when a transaction is completed (approved or declined).\n\nFor detailed webhook documentation, see: https://github.com/marcoespin/CARD-PRESENT-CHILE/blob/main/docs/webhooks/card-payments.md",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "transaction_id": {
+                    "type": "string"
+                  },
+                  "transaction_reference": {
+                    "type": "string"
+                  },
+                  "transaction_status": {
+                    "type": "string",
+                    "enum": ["APPROVAL", "DECLINED"]
+                  },
+                  "response_code": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "$ref": "#/components/schemas/Amount"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "description": "Custom fields sent in payment request"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook received successfully"
+          }
+        }
+      }
+    }
+  }
+}
