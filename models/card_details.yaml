@@ -1,0 +1,104 @@
+title: card_details
+x-stoplight:
+  id: 0wis22cjcy8lq
+type: object
+required:
+  - reading_type
+  - tracks
+properties:
+  enc_tlv:
+    $ref: ./enc_tlv.yaml
+    x-stoplight:
+      id: i1eci7ubo3ocv
+  pin_block:
+    type: string
+    x-stoplight:
+      id: g8gmz0i4exhxr
+    description: |-
+      **PIN block ISO-0.**
+
+      The pin block is a block of data that is used to encapsulate a personal identification number (PIN) during the process. The PIN block format defines the content of the PIN block and how it is processed to retrieve the PIN. A PIN block is composed of the PIN, the length of the PIN, and may contain a subset of the PAN.
+
+
+      >**It must be sent if the transaction is an online PIN transaction and must be encrypted with the BDK PIN key shared by Kushki  through the DUKPT protocol.**
+  pin_ksn:
+    type: string
+    x-stoplight:
+      id: t8rebibf4ijhj
+    description: |-
+      **Required if the `pin_block` field is sent.**
+
+      **Only 16 or 20 characters allowed.**
+
+      * **20-position (10 bytes) Key Serial Number (KSN)**.  This tag helps identify that it’s a PIN Based transaction. 
+
+      It is required in the DUKPT process to identify which initial key was used to encrypt the information.
+
+      After reading the pin entered into the POS and sending the pin block, the KSN is incremented by a user-defined amount (usually 1) and then used with the current transaction key to create more future keys.
+
+      * 3 bytes (6 positions): Issuer Identification Number
+      * 1 byte (2 positions): Customer ID 
+      * 1 byte (2 positions): Group ID.
+      * 19 bit: Device ID, its last character must be even (0, 2, 4, 6, 8, A, C, E). 
+      * 21 bit: Transaction Counter.  This is a 21 bit value. The initial value is all nulls for the initial PIN encryption Key (IPEK).
+  pin_ksn_desc:
+    type: string
+    x-stoplight:
+      id: gxaoi4alxr91x
+    description: |-
+      **Required if the `pin_block` field is sent.**
+
+      The PIN Descriptor used in a PIN translation defines the number of hex characters in the BDK identifier and device identifier only. It is a three digits value, which could be presented as XYZ, where X is the BDK identifier length, Y is the sub-key identifier key length, Z is the device identifier length.
+  reading_type:
+    type: string
+    x-stoplight:
+      id: 67hft2hhh804l
+    description: |-
+      Indicates the type of reading.
+
+      * ICC (Chip Reading)
+      * MCR (Magnetic stripe)
+      * NFC (Contactless)
+  tracks:
+    type: object
+    x-stoplight:
+      id: w26r6cjen9n8u
+    required:
+      - track_ksn
+    properties:
+      enc_track1:
+        type: string
+        x-stoplight:
+          id: 5z94ygwz2lkaa
+        description: |-
+          Required when the reading is by magnetic stripe. Magnetic stripe encryption.
+
+          > It must be encrypted through the DUKPT protocol with the BDK data key shared by Kushki.
+      enc_track2:
+        type: string
+        x-stoplight:
+          id: seknmig4v69zb
+        description: |-
+          Required when the reading is by chip, magnetic stripe or NFC. Magnetic stripe encryption.
+
+
+          >**NOTE**: It must be encrypted in hexadecimal format and replace the `=` with the capital letter `D`.
+          > <p/>It must be encrypted through the DUKPT protocol with the BDK data key shared by Kushki.
+      track_ksn:
+        type: string
+        x-stoplight:
+          id: pq2w2uc868lfj
+        description: Required when the reading is by chip or NFC. Data encryption key.
+      track_ksn_desc:
+        type: string
+        x-stoplight:
+          id: 4ftik71v8imaa
+        description: |-
+          **Required if the `track_ksn` field is sent.**
+
+          The KSN Descriptor used in a PIN translation defines the number of hex characters in the BDK identifier and device identifier only. It is a three digits value, which could be presented as XYZ, where X is the BDK identifier length, Y is the sub-key identifier key length, Z is the device identifier length.
+      track2_length:
+        type: string
+        x-stoplight:
+          id: op4jvfwio2e75
+        description: Number in string format that represents the length of track 2 but without the filler digits to complete the 16 positions.

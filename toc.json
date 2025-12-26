@@ -1,0 +1,93 @@
+{
+    "collapseTableOfContents": true,
+  "items": [
+    {
+      "type": "item",
+      "title": "Home",
+      "uri": "/docs/home.md",
+      "slug": "home"
+    },
+    {
+      "type": "divider",
+      "title": "GET STARTED"
+    },
+    {
+      "type": "group",
+      "title": "Webhooks",
+      "items": [
+        {
+          "type": "item",
+          "title": "Webhooks overview",
+          "uri": "/docs/webhooks/introduction.md",
+          "slug": "webhooks/overview"
+        },
+        {
+          "type": "item",
+          "title": "Good practices",
+          "uri": "/docs/webhooks/good-practices.md",
+          "slug": "webhooks/good-practices"
+        },
+        {
+          "type": "item",
+          "title": "Check your webhooks",
+          "uri": "/docs/webhooks/check-your-webhooks.md",
+          "slug": "webhooks/check-your-webhooks"
+        },
+        {
+          "type": "item",
+          "title": "Card payments",
+          "uri": "/docs/webhooks/card-payments.md",
+          "slug": "webhooks/card-payments"
+        },
+        {
+          "type": "item",
+          "title": "Refunds",
+          "uri": "/docs/webhooks/refunds.md",
+          "slug": "webhooks/refunds"
+        }
+      ]
+    },
+        {
+      "type": "item",
+      "title": "Errors",
+      "uri": "/docs/errors.md",
+      "slug": "errors"
+    },
+        {
+      "type": "divider",
+      "title": "CARD PRESENT PAYMENTS"
+    },
+    {
+      "type": "item",
+      "title": "Cloud terminal API",
+      "uri": "/reference/cloud-terminal-api.json",
+      "slug": "cloud-terminal-api"
+    },
+            {
+      "type": "divider",
+      "title": "TRANSACTIONS"
+    },
+    {
+      "type": "item",
+      "title": "Transaction search",
+      "uri": "/reference/transaction-search.json",
+      "slug": "transaction-search"
+    },
+    {
+      "type": "item",
+      "title": "Voids and refunds",
+      "uri": "/reference/voids-and-refunds.json",
+      "slug": "voids-and-refunds"
+    },
+    {
+      "type": "divider",
+      "title": "What's new "
+    },
+    {
+      "type": "item",
+      "title": "Release notes",
+      "uri": "docs/release-notes/new.md",
+      "slug": "new"
+    }
+  ]
+}

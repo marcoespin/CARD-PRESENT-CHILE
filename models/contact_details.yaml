@@ -1,0 +1,47 @@
+title: contact_details
+x-stoplight:
+  id: ncwu6z7y1snkf
+type: object
+required:
+  - document_type
+properties:
+  document_number:
+    type: string
+    x-stoplight:
+      id: b6hqoaug6qpgj
+    description: |
+      Optional only when `document_type`= `-1`.
+  document_type:
+    x-stoplight:
+      id: fccu2f7h99utz
+    enum:
+      - '-1'
+      - '0'
+      - '1'
+    description: |-
+      * `-1`: No document will be sent. Sending the `document_number` field is not required.
+      * `0`: A DNI type document will be sent. Sending the `document_number` field with the document number is required. **Applies only in Colombia**.
+      * `1`: A Passport type document will be sent. Sending the `document_number` field with the document number is required. **Applies only in Colombia**.
+  email:
+    type: string
+    x-stoplight:
+      id: n10vmuesrlmnf
+  first_name:
+    type: string
+    x-stoplight:
+      id: 3ejndr0ul8z7o
+  last_name:
+    type: string
+    x-stoplight:
+      id: 1pno2gbb0x93e
+  second_last_name:
+    type: string
+    x-stoplight:
+      id: s0x147outlwtn
+    description: |
+      Apply only for Colombia.
+  phone_number:
+    type: string
+    x-stoplight:
+      id: cnqjfvp5hstyo
+    description: E.164 standard.

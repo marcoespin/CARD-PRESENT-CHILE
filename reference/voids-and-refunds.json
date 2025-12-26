@@ -1,0 +1,1148 @@
+{
+  "openapi": "3.1.0",
+  "x-stoplight": {
+    "id": "j0i93zre7yasa"
+  },
+  "info": {
+    "version": "",
+    "title": "VOIDS & REFUNDS",
+    "summary": "REFUNDS",
+    "description": "Perform refunds and voids for authorized transactions. Once the refund or void is approved, the funds will be returned to your customer’s bank account.\n\n<!-- theme: warning -->\n> #### Service available in the following countries:\n>\n> Chile.  \n\n## Requirements\n\nTo perform a refund or void, you will need your **Private-Credential-Id**. Contact your **account manager** to obtain your keys.\n\nMake a void or refund request according to the following conditions:\n\n| Operation | Description |\n| -- | -- | \n| Void| A **void** is generated when a cancellation request is made for an authorized transaction **before 11:59 p.m. on the day of authorization** (this time depends on the cut-off performed by the processor). Up to **3 attempts** of refund are made with the processor. Once the void is approved, the charge will be removed from your customer's statement and the deducted amount will be refunded. | \n| Refund | A **refund** is generated when a cancellation request is made for an authorized transaction **after 11:59 p.m. on the day of authorization** or when the void request exceeded **three attempts**. The maximum time allowed to process a refund is __120 days.__ | \n\n## Environments\n\nYou can simulate tests in the `Dev` environment to make the necessary adjustments to your system. Remember that no real transactions will be processed in this environment. Choose the appropriate environment to void or refund a transaction.\n\n<br>\n\n| Environment | Base Url |\n|---------|----------| \n| Dev | https://api-uat.kushkipagos.com | \n| Live | https://api.kushkipagos.com | \n\n## Voids\n\nRequest a **void** for an authorized transaction by sending its transaction reference (`transaction_reference`). Obtain the transaction reference via a notification through [webhooks](../docs/webhooks/introduction.md) or by performing a [transaction search](transaction-search.json).\n\n> You can make partial voids by sending the `amount` object with an amount less than the authorized amount.\n\nTo make a void, you must submit the request on the same day the original transaction was authorized before 11:59 p.m.\n\nReview available [environments](#environments) and learn more in the [API reference](voids-and-refunds.json/paths/~1pos~1v1~1transaction/post).\n\n### Examples \n\n#### Void request example:\n\nSend a request to the [Voids](voids-and-refunds.json/paths/~1pos~1v1~1transaction/post) endpoint to void a transaction. Set the `transaction_mode` property to `Void` and send the transaction reference through the `transaction_reference` property.\n\n<br>\n\n```json\ncurl --request POST \\\n  --url https://api.kushkipagos.com/pos/v1/transaction \\\n  --header 'Accept: application/json' \\\n  --header 'Content-Type: application/json' \\\n  --header 'Private-Credential-Id: credentialId' \\\n  --data '{\n  \"omit_card\": true,\n  \"transaction_mode\": \"Void\",\n  \"transaction_type\": \"charge\",\n  \"client_transaction_id\": \"6680eadc-6c8d-44aa-8ca0-18e061c1472a\",\n  \"transaction_reference\": \"f2f29080-0214-42c0-95a5-77ecf3434cd7\"\n}'\n```\n\n#### Partial void request example:\n\nSend a request to the [Voids](voids-and-refunds.json/paths/~1pos~1v1~1transaction/post) endpoint to void a transaction. Set the `transaction_mode` property to `Void`, send the transaction reference through the `transaction_reference` property and send the `amount` obtject with an amount less than the authorized amount.\n\n<br>\n\n```json\ncurl --request POST \\\n  --url https://api.kushkipagos.com/pos/v1/transaction \\\n  --header 'Accept: application/json' \\\n  --header 'Content-Type: application/json' \\\n  --header 'Private-Credential-Id: credentialId' \\\n  --data '{\n  \"amount\": {\n    \"iva\": 0,\n    \"currency\": \"CLP\",\n    \"subtotal_iva\": 0,\n    \"subtotal_iva0\": 60000\n  },\n  \"omit_card\": true,\n  \"transaction_mode\": \"Void\",\n  \"transaction_type\": \"charge\",\n  \"client_transaction_id\": \"6680eadc-6c8d-44aa-8ca0-18e061c1472a\",\n  \"transaction_reference\": \"f2f29080-0214-42c0-95a5-77ecf3434cd7\"\n}'\n```\n\n## Refunds\n\nRequest a **refund** for an authorized transaction by sending its transaction reference (`transaction_reference`). Obtain the transaction reference via a notification through [webhooks](../docs/webhooks/introduction.md) or by performing a [transaction search](transaction-search.json).\n\n> You can make partial refunds by sending the `amount` object with an amount less than the authorized amount.\n\nTo make a refund, you must submit the request after the day the transaction was authorized.\n\nReview available [environments](#environments) and learn more in the [API reference](voids-and-refunds.json/paths/~1pos~1v1~1refund/post).\n\n### Examples \n\n#### Refund request example:\n\nSend a request to the [Refund a transaction](voids-and-refunds.json/paths/~1pos~1v1~1refund/post) endpoint to refund a transaction. Set the `transaction_mode` property to `Authorization`, the `transaction_type` property to `refund` and send the transaction reference through the `transaction_reference` property.\n\n<br>\n\n```json\ncurl --request POST \\\n  --url https://api.kushkipagos.com/pos/v1/refund \\\n  --header 'Accept: application/json' \\\n  --header 'Content-Type: application/json' \\\n  --header 'Private-Credential-Id: credentialId' \\\n  --data '{\n  \"omit_card\": true,\n  \"transaction_mode\": \"Authorization\",\n  \"transaction_type\": \"refund\",\n  \"client_transaction_id\": \"6680eadc-6c8d-44aa-8ca0-18e061c1472a\",\n  \"transaction_reference\": \"f2f29080-0214-42c0-95a5-77ecf3434cd7\"\n}'\n```\n\n#### Partial refund request example:\n\nSend a request to the [Refund a transaction](voids-and-refunds.json/paths/~1pos~1v1~1refund/post) endpoint to refund a transaction. Set the `transaction_mode` property to `Authorization`, the `transaction_type` property to `refund`, send the transaction reference through the `transaction_reference` property and send the `amount` obtject with an amount less than the authorized amount.\n\n<br>\n\n```json\ncurl --request POST \\\n  --url https://api.kushkipagos.com/pos/v1/refund \\\n  --header 'Accept: application/json' \\\n  --header 'Content-Type: application/json' \\\n  --header 'Private-Credential-Id: credentialId' \\\n  --data '{\n  \"amount\": {\n    \"iva\": 0,\n    \"currency\": \"CLP\",\n    \"subtotal_iva\": 0,\n    \"subtotal_iva0\": 60000\n  },\n  \"omit_card\": true,\n  \"transaction_mode\": \"Authorization\",\n  \"transaction_type\": \"refund\",\n  \"client_transaction_id\": \"6680eadc-6c8d-44aa-8ca0-18e061c1472a\",\n  \"transaction_reference\": \"f2f29080-0214-42c0-95a5-77ecf3434cd7\"\n}'\n```\n\n<br>\n\n---\n\n## Next steps\n\nReview the API reference for [voids](voids-and-refunds.json/paths/~1pos~1v1~1transaction/post) and [refunds](voids-and-refunds.json/paths/~1pos~1v1~1refund/post).\n"
+  },
+  "servers": [
+    {
+      "url": "https://api.kushkipagos.com",
+      "description": ""
+    }
+  ],
+  "paths": {
+    "/pos/v1/transaction": {
+      "post": {
+        "summary": "Voids",
+        "description": "Void an authorized transaction identified by its transaction reference (`transaction_reference`). Obtain the transaction reference via [webhooks](../docs/webhooks/introduction.md) or by performing a [transaction search](transaction-search.json) after a payment has been authorized.\n\n> Send the `amount` object with an amount less than the authorized amount to perform a partial void.\n\nTo make a void, you must submit the request on the same day the original transaction was authorized before 11:59 p.m.\n\n### Structure\n\nTo void a transaction, set the `transaction_mode` property to `Void` and send the transaction reference through the `transaction_reference` property (see full example on the right side of the screen).\n\n<!-- theme: warning -->\n> If a void is performed after the [allowed time limit](voids-and-refunds.json), the request will be processed as a refund.",
+        "operationId": "voids",
+        "parameters": [
+          {
+            "name": "Private-Credential-Id",
+            "in": "header",
+            "description": "Private key provided by Kushki.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "description": "application/json",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "x-examples": {
+                  "Example 1": {
+                    "card": {
+                      "card_holder_name": "C92546CB8524197A17A1B960D5D09A01ABBE63E5478FD5155DBE2B18824771046EEA135D73B192236937AF33E781B81804098835D3A1AD81A863BAEA3BAA42E4"
+                    },
+                    "amount": {
+                      "iva": 0,
+                      "tip": 0,
+                      "currency": "COP",
+                      "extra_taxes": {
+                        "iac": 0,
+                        "ice": 0,
+                        "airport_tax": 0,
+                        "travel_agency": 0
+                      },
+                      "subtotal_iva": 0,
+                      "subtotal_iva0": 2000
+                    },
+                    "country": "COL",
+                    "cvm_type": "Chip",
+                    "pos_details": {
+                      "brand": "SUNMI",
+                      "model": "P2-EU",
+                      "version": "Kushki SunmiV1.1.13",
+                      "location": {
+                        "latitude": -0.1848534,
+                        "longitude": -78.4769761
+                      },
+                      "has_print": true,
+                      "terminal_id": "PB04209860189"
+                    },
+                    "card_details": {
+                      "tracks": {
+                        "track_ksn": "FFFF4357486333600002",
+                        "enc_track1": "06056D9EE9D77E4D846912F77C0B37C5FC6A95D1DF21DD502D3A08E8141CF82818F5DC4FA7637F400EA488D388F2B70F8A22EAEFBBEEDDE93A118BFB789BD8C0",
+                        "enc_track2": "FD580B3BBFCCB821EAB4AB64947C4632C0BE6C70AB4ECDE4"
+                      },
+                      "pin_ksn": "FFFF4357486333600002",
+                      "reading_type": "MCR"
+                    },
+                    "contact_details": {
+                      "email": "",
+                      "last_name": "",
+                      "first_name": "",
+                      "phone_number": "",
+                      "document_type": "0",
+                      "document_number": "123666",
+                      "second_last_name": ""
+                    },
+                    "transaction_mode": "Void",
+                    "transaction_type": "charge",
+                    "client_transaction_id": "ae6dd91a-9173-4ec7-8934-3178454ef341"
+                  }
+                },
+                "required": [
+                  "transaction_mode",
+                  "transaction_type",
+                  "transaction_reference",
+                  "omit_card",
+                  "client_transaction_id"
+                ],
+                "properties": {
+                  "transaction_mode": {
+                    "type": "string",
+                    "enum": [
+                      "Void"
+                    ]
+                  },
+                  "transaction_type": {
+                    "type": "string",
+                    "enum": [
+                      "charge"
+                    ]
+                  },
+                  "transaction_reference": {
+                    "type": "string",
+                    "description": "Unique ID per transaction generated by Kushki.\n"
+                  },
+                  "omit_card": {
+                    "description": "Must be set as `true`.",
+                    "enum": [
+                      true
+                    ]
+                  },
+                  "client_transaction_id": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "$ref": "../models/amount.yaml"
+                  },
+                  "is_smart_void": {
+                    "type": "boolean",
+                    "description": "Only for Chile. Send as `true` if you want this transaction processed as a refund instead of void for BCI, Banco de Chile, and Scotiabank credit card transactions.",
+                    "default": false
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "$ref": "../models/metadata.yaml"
+                  }
+                }
+              },
+              "examples": {
+                "Partial void": {
+                  "value": {
+                    "amount": {
+                      "currency": "CLP",
+                      "iva": 0,
+                      "subtotal_iva": 0,
+                      "subtotal_iva0": 60000
+                    },
+                    "transaction_mode": "Void",
+                    "transaction_type": "charge",
+                    "client_transaction_id": "6680eadc-6c8d-44aa-8ca0-18e061c1472a",
+                    "transaction_reference": "f2f29080-0214-42c0-95a5-77ecf3434cd7",
+                    "omit_card": true
+                  }
+                },
+                "Void": {
+                  "value": {
+                    "transaction_mode": "Void",
+                    "transaction_type": "charge",
+                    "client_transaction_id": "6680eadc-6c8d-44aa-8ca0-18e061c1472a",
+                    "transaction_reference": "f2f29080-0214-42c0-95a5-77ecf3434cd7",
+                    "omit_card": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "x-examples": {
+                    "example-1": {
+                      "additional_amounts": {
+                        "account_type": "",
+                        "amount": 0,
+                        "amount_type": "",
+                        "card_type": "",
+                        "currency_code": ""
+                      },
+                      "authorized_amount": 2000,
+                      "cvm_type": "",
+                      "F11": "107449",
+                      "franchise": "MASTERCARD",
+                      "kushki_response": {
+                        "code": "000",
+                        "message": "Transacción Aprobada."
+                      },
+                      "message_fields": {
+                        "F38": "13660Z",
+                        "F39": "00"
+                      },
+                      "transaction_reference": "4b0c8f00-945c-4d7c-8649-38ea76983c28",
+                      "transaction_status": "APPROVAL",
+                      "transaction_type": "charge"
+                    }
+                  },
+                  "properties": {
+                    "additional_amounts": {
+                      "type": "object",
+                      "properties": {
+                        "account_type": {
+                          "type": "string"
+                        },
+                        "amount": {
+                          "type": "integer"
+                        },
+                        "amount_type": {
+                          "type": "string"
+                        },
+                        "card_type": {
+                          "type": "string"
+                        },
+                        "currency_code": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "authorized_amount": {
+                      "type": "integer"
+                    },
+                    "cvm_type": {
+                      "type": "string",
+                      "description": "Cardholder Verification Methods"
+                    },
+                    "F11": {
+                      "type": "string"
+                    },
+                    "franchise": {
+                      "type": "string",
+                      "enum": [
+                        "VISA",
+                        "PROSA",
+                        "MASTERCARD"
+                      ],
+                      "description": "Franchise where the transaction was processed"
+                    },
+                    "kushki_response": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "message_fields": {
+                      "type": "object",
+                      "properties": {
+                        "F38": {
+                          "type": "string"
+                        },
+                        "F39": {
+                          "type": "string"
+                        },
+                        "F55": {
+                          "$ref": "../models/F55.yaml"
+                        }
+                      }
+                    },
+                    "transaction_reference": {
+                      "type": "string",
+                      "description": "Unique ID per transaction generated by Kushki"
+                    },
+                    "transaction_status": {
+                      "type": "string",
+                      "enum": [
+                        "APPROVAL",
+                        "DECLINED"
+                      ],
+                      "description": "Indicates the status of the transaction"
+                    },
+                    "transaction_type": {
+                      "type": "string"
+                    },
+                    "ticket_number": {
+                      "type": "string",
+                      "maxLength": 18
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "Origin": {
+                          "type": "string"
+                        },
+                        "Message": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "example-1": {
+                      "code": "E001",
+                      "details": {
+                        "Origin": "Process Generic Transaction | validateRequest",
+                        "Message": "document_number: cannot be blank; document_type: cannot be blank."
+                      },
+                      "message": "Cuerpo de la petición inválido."
+                    }
+                  }
+                },
+                "examples": {
+                  "E001: document_number: cannot be blank": {
+                    "value": {
+                      "code": "E001",
+                      "details": {
+                        "Origin": "Process Generic Transaction | validateRequest",
+                        "Message": "document_number: cannot be blank; document_type: cannot be blank."
+                      },
+                      "message": "Cuerpo de la petición inválido."
+                    }
+                  },
+                  "E001: Cuerpo de la petición inválido": {
+                    "value": {
+                      "code": "E001",
+                      "message": "Cuerpo de la petición inválido."
+                    }
+                  },
+                  "E001: Error the bin is empty": {
+                    "value": {
+                      "code": "E001",
+                      "details": {
+                        "Origin": "BinInfoMiddleware | getBinInfo",
+                        "Message": "Error the bin is empty"
+                      },
+                      "message": "Cuerpo de la petición inválido."
+                    }
+                  },
+                  "E041: Partial void not allowed": {
+                    "value": {
+                      "code": "E041",
+                      "details": {
+                        "Origin": "Capture Validator",
+                        "Message": "Partial void not allowed"
+                      },
+                      "message": "Operación no permitida"
+                    }
+                  },
+                  "E048: Already reversed transaction": {
+                    "value": {
+                      "code": "E048",
+                      "details": {
+                        "Origin": "Void Amount Control",
+                        "Message": "La transacción previa ya se encuentra reversada"
+                      },
+                      "message": "La transacción previa ya se encuentra reservada"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "example-1": {
+                      "message": "Unauthorized"
+                    }
+                  }
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "message": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "Origin": {
+                          "type": "string"
+                        },
+                        "Message": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "example-1": {
+                      "code": "E030",
+                      "details": {
+                        "Origin": "RuleMiddleware | invokeAuthorizerLambda",
+                        "Message": "InvokeLambda has failed"
+                      },
+                      "message": "Error al invocar lambda BinInfo."
+                    }
+                  }
+                },
+                "examples": {
+                  "E007: Code: E002 | Status Code: 500 | Message: Ha ocurrido un error inesperado.": {
+                    "value": {
+                      "code": "E007",
+                      "details": {
+                        "Origin": "PinTranslate",
+                        "Message": "Code: E002 | Status Code: 500 | Message: Ha ocurrido un error inesperado. | Metadata: {\"Origin\":\"LambdaGateway\",\"Message\":\"payload's status code is not ok\"}"
+                      },
+                      "message": "Error al invocar lambda."
+                    }
+                  },
+                  "E030: InvokeLambda has failed": {
+                    "value": {
+                      "code": "E030",
+                      "details": {
+                        "Origin": "RuleMiddleware | invokeAuthorizerLambda",
+                        "Message": "InvokeLambda has failed"
+                      },
+                      "message": "Error al invocar lambda BinInfo."
+                    }
+                  },
+                  "E005: Code: E005 | Status Code: 500 | Message: Ocurrió un error al obtener la configuración de transacciones para la franquicia.": {
+                    "value": {
+                      "code": "E005",
+                      "details": {
+                        "Origin": "Build Params Gateway Request",
+                        "Message": "Code: E005 | Status Code: 500 | Message: Ocurrió un error al obtener la configuración de transacciones para la franquicia. | Metadata: {\"Origin\":\"GetBuilder\",\"Message\":\"Cannot find builder function for identifier MASTERCARD\"}"
+                      },
+                      "message": "Ocurrió un error al obtener la configuración de transacciones para la franquicia."
+                    }
+                  },
+                  "E002: invalid character 'o' in literal null (expecting 'u')": {
+                    "value": {
+                      "code": "E002",
+                      "details": {
+                        "Origin": "Transaction Management Service | processSendTransactionError",
+                        "Message": "invalid character 'o' in literal null (expecting 'u')"
+                      },
+                      "message": "Ocurrió un error al enviar y/o obtener transacción al gateway."
+                    }
+                  },
+                  "E002: Vault token can't decrypt": {
+                    "value": {
+                      "code": "E002",
+                      "details": {
+                        "Origin": "Transaction Management Service | ProcessCaptureVisaTransaction",
+                        "Message": "Vault token can't decrypt"
+                      },
+                      "message": "Ha ocurrido un error inesperado."
+                    }
+                  },
+                  "E002: exception for required fields": {
+                    "value": {
+                      "code": "E002",
+                      "details": {
+                        "Origin": "Transaction Management Service | ProcessCaptureVisaTransaction",
+                        "Message": "exception for required fields"
+                      },
+                      "message": "Ha ocurrido un error inesperado."
+                    }
+                  },
+                  "E042: Currency code is different from the initial transaction": {
+                    "value": {
+                      "code": "E042",
+                      "details": {
+                        "Origin": "Build Params Gateway Request",
+                        "Message": "El código de moneda es diferente al de la transacción inicial."
+                      },
+                      "message": "El código de moneda es diferente al de la transacción inicial."
+                    }
+                  },
+                  "E041: Operation not allowed": {
+                    "value": {
+                      "code": "E041",
+                      "details": {
+                        "Origin": "Transaction Management Service | ProcessCaptureTransaction",
+                        "Message": "Operación no permitida"
+                      },
+                      "message": "Operación no permitida"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "servers": [
+          {
+            "url": "https://api.kushkipagos.com",
+            "description": ""
+          }
+        ],
+        "x-stoplight": {
+          "id": "nmjfr3cta30k7"
+        }
+      },
+      "servers": [
+        {
+          "url": "https://api.kushkipagos.com",
+          "description": "Live server"
+        },
+        {
+          "url": "",
+          "description": ""
+        }
+      ]
+    },
+    "/pos/v1/refund": {
+      "post": {
+        "summary": "Refund a transaction",
+        "description": "Refund an authorized transaction identified by its transaction reference (`transaction_reference`). Obtain the transaction reference via [webhooks](../docs/webhooks/introduction.md) or by performing a [transaction search](transaction-search.json) after a payment has been authorized.\n\n> Send the `amount` object with an amount less than the authorized amount to perform a partial refund.\n\nTo make a refund, you must submit the request after the day the transaction was authorized.\n\n### Structure\n\nTo refund a transaction, set the `transaction_mode` property to `Authorization`, the `transaction_type` property to `refund` and send the transaction reference through the `transaction_reference` property.\n",
+        "operationId": "refunds",
+        "parameters": [
+          {
+            "name": "Private-Credential-Id",
+            "in": "header",
+            "description": "Private key provided by Kushki",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "description": "application/json",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "x-examples": {
+                  "example-1": {
+                    "amount": {
+                      "currency": "MXN",
+                      "extra_taxes": {
+                        "airport_tax": 0,
+                        "iac": 0,
+                        "ice": 0,
+                        "travel_agency": 0
+                      },
+                      "iva": 0,
+                      "subtotal_iva": 0,
+                      "subtotal_iva0": 2000,
+                      "tip": 0
+                    },
+                    "card": {
+                      "card_holder_name": "SANTIAGO MONGE/"
+                    },
+                    "card_details": {
+                      "enc_tlv": "E9BCEC77FACD77F942E433BE6CD27068F09ADFA082B6AE478D9BDA4EEEAFD3765300FD2EF030CD3A8DD9624E04CDFBC60B4206B9587A1A0DB5820D87D3ACAB9F8B14B35A8B8D7307AEBDCFD9D5DD8EB5DC7BFB729A1E6ABAC08D5C5A064F590F414D560C3EE964449B40D24B09703AE38FF45F328CC03A8A3ABCFBCDF0AFBCDAB674C87AC66CD842E7E9C36B6826ECAC8EB32E5E036787D4B50CD8C43F0C89918A23C396AEE4096805AE52DF13B343A6FDAC864CB27593C65B39B02239B707554357675ED96C3859",
+                      "pin_ksn": "FFFF4357486333600003",
+                      "reading_type": "ICC",
+                      "tracks": {
+                        "enc_track1": "06056D9EE9D77E4D846912F77C0B37C5FC6A95D1DF21DD502D3A08E8141CF82818F5DC4FA7637F400EA488D388F2B70F8A22EAEFBBEEDDE93A118BFB789BD8C0",
+                        "enc_track2": "2C5E3DC796759FAB00BB11163CC4B69B",
+                        "track_ksn": "FFFF4357486333600003"
+                      },
+                      "pin_block": "77745DD18B48D49F"
+                    },
+                    "client_transaction_id": "cffd9e13-993d-4d8b-9862-3ac4c0f63dec",
+                    "country": "MEX",
+                    "is_deferred": false,
+                    "deferred": {
+                      "amount_of_installments": 0,
+                      "credit_type": "",
+                      "months": "10",
+                      "transaction_rate": ""
+                    },
+                    "is_cashback": false,
+                    "cashback_amount": 20,
+                    "pos_details": {
+                      "brand": "SUNMI",
+                      "has_print": true,
+                      "location": {
+                        "latitude": -1.2253600000000002,
+                        "longitude": -78.61997
+                      },
+                      "model": "P2-EU",
+                      "terminal_id": "PB04209860189",
+                      "version": "Kushki SunmiV1.1.18"
+                    },
+                    "contact_details": {
+                      "document_number": "1111111",
+                      "document_type": "0",
+                      "email": "",
+                      "first_name": "",
+                      "last_name": "",
+                      "second_last_name": "",
+                      "phone_number": "+5"
+                    },
+                    "transaction_mode": "Authorization",
+                    "transaction_reference": "d5979f96-0449-414b-9ece-b0b3681089d6",
+                    "transaction_type": "checkIn",
+                    "cvm_type": "none"
+                  }
+                },
+                "required": [
+                  "transaction_mode",
+                  "transaction_type",
+                  "transaction_reference",
+                  "omit_card",
+                  "client_transaction_id",
+                  "amount"
+                ],
+                "properties": {
+                  "transaction_mode": {
+                    "const": "Authorization",
+                    "enum": [
+                      "Authorization"
+                    ]
+                  },
+                  "transaction_type": {
+                    "const": "efundr",
+                    "enum": [
+                      "refund"
+                    ]
+                  },
+                  "transaction_reference": {
+                    "type": "string",
+                    "description": "Unique ID per transaction generated by Kushki."
+                  },
+                  "omit_card": {
+                    "default": false,
+                    "description": "Must be set as `true`.",
+                    "enum": [
+                      true
+                    ]
+                  },
+                  "client_transaction_id": {
+                    "type": "string",
+                    "description": "UUID v4 generated from the merchant side. It must be a unique ID per transaction."
+                  },
+                  "amount": {
+                    "$ref": "../models/amount.yaml"
+                  },
+                  "is_cashback": {
+                    "type": "boolean"
+                  },
+                  "cashback_amount": {
+                    "type": "number",
+                    "description": "Required when `is_cashback` = `true`"
+                  },
+                  "is_deferred": {
+                    "type": "boolean",
+                    "x-stoplight": {
+                      "id": "d78okkh8zhj17"
+                    }
+                  },
+                  "deferred": {
+                    "$ref": "../models/deferred.yaml",
+                    "x-stoplight": {
+                      "id": "yexo19a9dyjwl"
+                    }
+                  },
+                  "metadata": {
+                    "$ref": "../models/metadata.yaml"
+                  }
+                }
+              },
+              "examples": {
+                "Partial refund": {
+                  "value": {
+                    "amount": {
+                      "iva": 0,
+                      "currency": "CLP",
+                      "subtotal_iva": 0,
+                      "subtotal_iva0": 60000
+                    },
+                    "omit_card": true,
+                    "transaction_mode": "Authorization",
+                    "transaction_type": "refund",
+                    "client_transaction_id": "6680eadc-6c8d-44aa-8ca0-18e061c1472a",
+                    "transaction_reference": "f2f29080-0214-42c0-95a5-77ecf3434cd7"
+                  }
+                },
+                "Refund": {
+                  "value": {
+                    "omit_card": true,
+                    "transaction_mode": "Authorization",
+                    "transaction_type": "refund",
+                    "client_transaction_id": "6680eadc-6c8d-44aa-8ca0-18e061c1472a",
+                    "transaction_reference": "f2f29080-0214-42c0-95a5-77ecf3434cd7"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "x-examples": {
+                    "example-1": {
+                      "additional_amounts": {
+                        "account_type": "",
+                        "amount": 0,
+                        "amount_type": "",
+                        "card_type": "",
+                        "currency_code": ""
+                      },
+                      "authorized_amount": 2000,
+                      "cvm_type": "",
+                      "F11": "107449",
+                      "franchise": "MASTERCARD",
+                      "kushki_response": {
+                        "code": "000",
+                        "message": "Transacción Aprobada."
+                      },
+                      "message_fields": {
+                        "F38": "13660Z",
+                        "F39": "00"
+                      },
+                      "transaction_reference": "4b0c8f00-945c-4d7c-8649-38ea76983c28",
+                      "transaction_status": "APPROVAL",
+                      "transaction_type": "charge"
+                    }
+                  },
+                  "properties": {
+                    "additional_amounts": {
+                      "type": "object",
+                      "properties": {
+                        "account_type": {
+                          "type": "string"
+                        },
+                        "amount": {
+                          "type": "integer"
+                        },
+                        "amount_type": {
+                          "type": "string"
+                        },
+                        "card_type": {
+                          "type": "string"
+                        },
+                        "currency_code": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "authorized_amount": {
+                      "type": "integer"
+                    },
+                    "cvm_type": {
+                      "type": "string",
+                      "description": "Cardholder Verification Methods"
+                    },
+                    "F11": {
+                      "type": "string"
+                    },
+                    "franchise": {
+                      "type": "string",
+                      "enum": [
+                        "VISA",
+                        "PROSA",
+                        "MASTERCARD"
+                      ],
+                      "description": "Franchise where the transaction was processed"
+                    },
+                    "kushki_response": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "message_fields": {
+                      "type": "object",
+                      "properties": {
+                        "F38": {
+                          "type": "string"
+                        },
+                        "F39": {
+                          "type": "string",
+                          "description": "Point-of-Service (POS) Entry Mode. Indicates the method by which the PAN was entered, according to the first two digits of the ISO 8583:1987 POS Entry Mode.\n\n* 00 = Approved or completed successfully\n* 01 = Refer to card issuer\n* 02 = Refer to card issuer's special conditions\n* 03 = Invalid merchant\n* 04 = Pick-up\n* 05 = Do not honor\n* 06 = Error\n* 07 = Pick-up card, special condition\n* 08 = Honour with identification\n* 09 = Request in progress\n* 10 = Approved for partial amount\n* 11 = Approved (VIP)\n* 12 = Invalid transaction\n* 13 = Invalid amount\n* 14 = Invalid card number (no such number)\n* 15 = No such issuer\n* 16 = Approved, update track 3\n* 17 = Customer cancellation\n* 18 = Customer dispute\n* 19 = Re-enter transaction\n* 20 = Invalid response\n* 21 = No action taken\n* 22 = Suspected malfunction\n* 23 = Unacceptable transaction fee\n* 24 = File update not supported by receiver\n* 25 = Unable to locate record on file\n* 26 = Duplicate file update record, old record replaced\n* 27 = File update field edit error\n* 28 = File update file locked out\n* 29 = File update not successful, contact acquirer\n* 30 = Format error\n* 31 = Bank not supported by switch\n* 32 = Completed partially\n* 33 = Expired card\n* 34 = Suspected fraud\n* 35 = Card acceptor contact acquirer\n* 36 = Restricted card\n* 37 = Card acceptor call acquirer security\n* 38 = Allowable PIN tries exceeded\n* 39 = No credit account\n* 40 = Requested function not supported\n* 41 = Lost card\n* 42 = No universal account\n* 43 = Stolen card, pick-up\n* 44 = No investment account\n* 45-50 = Reserved for ISO use\n* 51 = Not sufficient funds\n* 52 = No checking account\n* 53 = No savings account\n* 54 = Expired card\n* 55 = Incorrect personal identification number\n* 56 = No card record\n* 57 = Transaction not permitted to cardholder\n* 58 = Transaction not permitted to terminal\n* 59 = Suspected fraud\n* 60 = Card acceptor contact acquirer\n* 61 = Exceeds withdrawal amount limit\n* 62 = Restricted card\n* 63 = Security violation\n* 64 = Original amount incorrect\n* 65 = Exceeds withdrawal frequency limit\n* 66 = Card acceptor call acquirer's security department\n* 67 = Hard capture (requires that card be picked up at ATM)\n* 68 = Response received too late\n* 69-74 = Reserved for ISO use\n* 75 = Allowable number of PIN tries exceeded\n* 76-89 = Reserved for private use\n* 76-89 = Reserved for private use\n* 76-89 = Reserved for private use\n* 76-89 = Reserved for private use\n* 90 = Cutoff is in process (switch ending a day's business and starting the next. Transaction can be sent again in a few minutes)\n* 91 = Issuer or switch is inoperative\n* 92 = Financial institution or intermediate network facility cannot be found for routing\n* 93 = Transaction cannot be completed. Violation of law\n* 94 = Duplicate transmission\n* 95 = Reconcile error\n* 96 = System malfunction\n* 97-99 = Reserved for national use"
+                        }
+                      }
+                    },
+                    "transaction_reference": {
+                      "type": "string",
+                      "description": "Unique ID per transaction generated by Kushki"
+                    },
+                    "transaction_status": {
+                      "type": "string",
+                      "enum": [
+                        "APPROVAL"
+                      ],
+                      "description": "Indicates the status of the transaction"
+                    },
+                    "transaction_type": {
+                      "type": "string"
+                    },
+                    "ticket_number": {
+                      "type": "string",
+                      "maxLength": 18
+                    }
+                  }
+                },
+                "examples": {
+                  "GL - Refund a transaction": {
+                    "value": {
+                      "additional_amounts": {
+                        "account_type": "",
+                        "amount": 0,
+                        "amount_type": "",
+                        "card_type": "",
+                        "currency_code": ""
+                      },
+                      "authorized_amount": 500,
+                      "cvm_type": "",
+                      "F11": "",
+                      "franchise": "PROSA",
+                      "kushki_response": {
+                        "code": "000",
+                        "message": "Approved or completed Successfully."
+                      },
+                      "message_fields": {
+                        "F38": "211039",
+                        "F39": "00"
+                      },
+                      "transaction_reference": "f35dfb98-3a41-4192-9e92-41d29ed12a81",
+                      "ticket_number": "111727462978861299",
+                      "transaction_status": "APPROVAL",
+                      "transaction_type": "Refund"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "Origin": {
+                          "type": "string"
+                        },
+                        "Message": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "example-1": {
+                      "code": "E001",
+                      "details": {
+                        "Origin": "Process Generic Transaction | validateRequest",
+                        "Message": "document_number: cannot be blank; document_type: cannot be blank."
+                      },
+                      "message": "Cuerpo de la petición inválido."
+                    }
+                  }
+                },
+                "examples": {
+                  "E001: document_number: cannot be blank": {
+                    "value": {
+                      "code": "E001",
+                      "details": {
+                        "Origin": "Process Generic Transaction | validateRequest",
+                        "Message": "document_number: cannot be blank; document_type: cannot be blank."
+                      },
+                      "message": "Cuerpo de la petición inválido."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "example-1": {
+                      "message": "Unauthorized"
+                    }
+                  }
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "message": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition Failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "Origin": {
+                          "type": "string"
+                        },
+                        "Message": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "code": "E001",
+                      "details": {
+                        "Origin": "Process Generic Transaction | validateRequest",
+                        "Message": "document_number: cannot be blank; document_type: cannot be blank."
+                      },
+                      "message": "Cuerpo de la petición inválido."
+                    }
+                  }
+                },
+                "examples": {
+                  "GL - Invalid refund date": {
+                    "value": {
+                      "code": "E016",
+                      "details": {
+                        "Origin": "Refund Validator",
+                        "Message": "Refund no disponible"
+                      },
+                      "message": "Refund no disponible"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "Origin": {
+                          "type": "string"
+                        },
+                        "Message": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "example-1": {
+                      "code": "E030",
+                      "details": {
+                        "Origin": "RuleMiddleware | invokeAuthorizerLambda",
+                        "Message": "InvokeLambda has failed"
+                      },
+                      "message": "Error al invocar lambda BinInfo."
+                    }
+                  }
+                },
+                "examples": {
+                  "E007: Code: E002 | Status Code: 500 | Message: Ha ocurrido un error inesperado.": {
+                    "value": {
+                      "code": "E007",
+                      "details": {
+                        "Origin": "PinTranslate",
+                        "Message": "Code: E002 | Status Code: 500 | Message: Ha ocurrido un error inesperado. | Metadata: {\"Origin\":\"LambdaGateway\",\"Message\":\"payload's status code is not ok\"}"
+                      },
+                      "message": "Error al invocar lambda."
+                    }
+                  },
+                  "E030: InvokeLambda has failed": {
+                    "value": {
+                      "code": "E030",
+                      "details": {
+                        "Origin": "RuleMiddleware | invokeAuthorizerLambda",
+                        "Message": "InvokeLambda has failed"
+                      },
+                      "message": "Error al invocar lambda BinInfo."
+                    }
+                  },
+                  "E005: Code: E005 | Status Code: 500 | Message: Ocurrió un error al obtener la configuración de transacciones para la franquicia.": {
+                    "value": {
+                      "code": "E005",
+                      "details": {
+                        "Origin": "Build Params Gateway Request",
+                        "Message": "Code: E005 | Status Code: 500 | Message: Ocurrió un error al obtener la configuración de transacciones para la franquicia. | Metadata: {\"Origin\":\"GetBuilder\",\"Message\":\"Cannot find builder function for identifier MASTERCARD\"}"
+                      },
+                      "message": "Ocurrió un error al obtener la configuración de transacciones para la franquicia."
+                    }
+                  },
+                  "E002: invalid character 'o' in literal null (expecting 'u')": {
+                    "value": {
+                      "code": "E002",
+                      "details": {
+                        "Origin": "Transaction Management Service | processSendTransactionError",
+                        "Message": "invalid character 'o' in literal null (expecting 'u')"
+                      },
+                      "message": "Ocurrió un error al enviar y/o obtener transacción al gateway."
+                    }
+                  },
+                  "E002: Vault token can't decrypt": {
+                    "value": {
+                      "code": "E002",
+                      "details": {
+                        "Origin": "Transaction Management Service | ProcessCaptureVisaTransaction",
+                        "Message": "Vault token can't decrypt"
+                      },
+                      "message": "Ha ocurrido un error inesperado."
+                    }
+                  },
+                  "E002: exception for required fields": {
+                    "value": {
+                      "code": "E002",
+                      "details": {
+                        "Origin": "Transaction Management Service | ProcessCaptureVisaTransaction",
+                        "Message": "exception for required fields"
+                      },
+                      "message": "Ha ocurrido un error inesperado."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "servers": [
+          {
+            "url": "https://api.kushkipagos.com",
+            "description": ""
+          }
+        ],
+        "x-stoplight": {
+          "id": "bm6k4xpg9kobz"
+        }
+      },
+      "servers": [
+        {
+          "url": "https://api.kushkipagos.com",
+          "description": "Live server"
+        }
+      ]
+    }
+  },
+  "components": {
+    "schemas": {}
+  },
+  "x-internal": false
+}

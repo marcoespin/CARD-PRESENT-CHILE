@@ -1,0 +1,17 @@
+title: metadata
+x-stoplight:
+  id: hnr03eqlez5ol
+type: object
+properties:
+  key0:
+    type: string
+    x-stoplight:
+      id: ppxj27fyhtrb4
+  key1:
+    type: string
+    x-stoplight:
+      id: d01gvnsz3531b
+  key2:
+    type: string
+    x-stoplight:
+      id: uhff0urhlw430

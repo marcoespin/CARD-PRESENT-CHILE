@@ -1,0 +1,864 @@
+{
+  "openapi": "3.1.0",
+  "x-stoplight": {
+    "id": "7d109xpzqxz0q"
+  },
+  "info": {
+    "title": "Transaction search",
+    "version": "",
+    "description": "Get a list of your transactions with useful information for your operation. You can apply filters that allow you to obtain just the information you require or get the last 15 authorized transactions by device. This guide covers how to obtain the list of transactions and how to apply filters.\n\n<!-- theme: warning -->\n> #### Service available in the following countries:\n>\n> Chile 🇨🇱.\n\n## Requirements\n\nTo perform a search, you will need your **Private-Credential-Id** and **X-API-Key**. Contact your **account manager** to obtain yours.\n\n## Environments\n\nYou can simulate tests in the `Dev` environment to make the necessary adjustments to your system. Remember that no real transactions will be processed in this environment. Choose the appropriate environment to obtain the list of transactions.\n\n<br>\n\n| Environment | Base Url | Description |\n|---------|----------| --- |\n| Dev | https://api-uat.kushkipagos.com | Available for [search with filters](#search-with-filters). |\n| Live | https://api.kushkipagos.com | Available for [search with filters](#search-with-filters). | \n| Live | https://integrations.payment.haulmer.com/ | Available for [search by device](#search-by-device). |\n\n<br>\n\n## Search with filters\n\nApply filters to obtain the list of transactions according to the information you need for your operations.\n\nRemember that it is necessary to make the requests through HTTPS using the credentials we provided. It is important that you do not share sensitive data in public places.\n\nReview available [environments](#environments) and learn more in the [API reference](transaction-search.json/paths/~1pos-analytics~1v1~1transactions~1search/post).\n\n### Filters\n\nAvailable filters:\n\n| Filter | Type | Description | Required |\n|---|---|---|:---:|\n| `page` | Integer | Page number of the results. | Yes |\n| `size` | Integer | Number of elements to return from the search. | Yes |\n| `filters` | Object | Transaction filters. | - |\n| `filters.bin` | String | Filter by BIN number. | - |\n| `filters.transaction_type` | String | Filter by transaction type. Allowed values: `balanceInquiry` `capture` `charge` `checkIn` `checkout` `preAuth` `reAuthorization` `tip` `posTip` | - |\n| `filters.client_transaction_id` | String | Filter by UUID v4 generated from your side. It must be a unique ID per transaction. | - |\n| `filters.transaction_reference` | String | Filter by transaction reference. | - |\n| `filters.last_four_digits` | String | Filter by the last four digits of the card. | - |\n| `filters.start_date` | Integer | Set a start date for the search. | - |\n| `filters.end_date` | Integer | Set a end date for the search. | - |\n\n### Examples \n\n#### Example of request with filters:\n\nSet the filters and send a request to the [Search with filters](transaction-search.json/paths/~1pos-analytics~1v1~1transactions~1search/post) endpoint.\n\n<br>\n\n```json\ncurl --request POST \\\n  --url https://api-uat.kushkipagos.com//pos-analytics/v1/transactions/search \\\n  --header 'Accept: application/json' \\\n  --header 'Content-Type: application/json' \\\n  --header 'Private-Credential-Id: credentialId' \\\n  --data '{\n  \"page\": 1,\n  \"size\": 10,\n  \"filters\": {\n    \"bin\": \"541333\",\n    \"end_date\": 1712322035152,\n    \"start_date\": 1712286000000,\n    \"last_four_digits\": \"0653\",\n    \"transaction_type\": \"preAuth\",\n    \"client_transaction_id\": \"5bba557f-3df8-4f07-be20-ed1ad6b28c1d\",\n    \"transaction_reference\": \"62c64ab2-1b09-48bd-ab98-4fa9b1893250\"\n  }\n}'\n```\n\n#### Example of request without filters:\n\nSend a request to the [Search with filters](transaction-search.json/paths/~1pos-analytics~1v1~1transactions~1search/post) endpoint.\n\n<br>\n\n```json\ncurl --request POST \\\n  --url https://api-uat.kushkipagos.com/pos-analytics/v1/transactions/search \\\n  --header 'Accept: application/json' \\\n  --header 'Content-Type: application/json' \\\n  --header 'Private-Credential-Id: credentialId' \\\n  --data '{\n  \"page\": 1,\n  \"size\": 10\n}'\n```\n\n#### Example of successful request response:\n\nIf the request was successful, you will get an **HTTP status code 201 response** with a payload similar to the following:\n\n<br>\n\n```json\n{\n  \"items\": [\n    {\n      \"mcc\": \"4511\",\n      \"amount\": {\n        \"iva\": 0,\n        \"tip\": 0,\n        \"currency\": \"MXN\",\n        \"extra_taxes\": {},\n        \"subtotal_iva\": 0,\n        \"subtotal_iva0\": 231\n      },\n      \"country\": \"Mexico\",\n      \"created\": 1727462978861,\n      \"bin_card\": \"403338\",\n      \"metadata\": null,\n      \"merchant_id\": \"20000000107334554000\",\n      \"card_country\": \"ARG\",\n      \"foreign_card\": true,\n      \"issuing_bank\": \"CITIBANK\",\n      \"acquirer_bank\": \"Kushki\",\n      \"approval_code\": \"123456\",\n      \"merchant_name\": \"LENIPAY\",\n      \"payment_brand\": \"VISA\",\n      \"ticket_number\": \"111727462978861299\",\n      \"payment_method\": \"card\",\n      \"request_amount\": 231,\n      \"transaction_id\": \"111727462978861299\",\n      \"last_four_digits\": \"6782\",\n      \"transaction_type\": \"SALE\",\n      \"masked_credit_card\": \"403338XXXXXX6782\",\n      \"transaction_status\": \"APPROVAL\",\n      \"client_transaction_id\": \"61659d20-311c-4363-991d-7cdd73d36062\",\n      \"transaction_reference\": \"5b0c2db4-5551-46d1-aa86-d274f12bfde3\",\n      \"approved_transaction_amount\": 231\n    }\n  ]\n}\n```\n\n#### Example of a failed request response:\n\nIn case of error, you will receive an **HTTP status code 400** and a payload similar to the following:\n\n<br>\n\n```json\n{\n  \"code\": \"E001\",\n  \"message\": \"Cuerpo de la petición inválido.\"\n}\n```\n\n## Search by device\n\nGet the last 15 transactions made by a device through its serial number. **The device must be linked to your merchant in order to obtain the list of transactions**.\n\nRemember that it is necessary to make the requests through HTTPS using the credentials we provided. It is important that you do not share sensitive data in public places.\n\nReview available [environments](#environments) and learn more in the [API reference](transaction-search.json/paths/~1Transaction~1Latest~1{device}/get).\n\n### Examples \n\n#### Request example:\n\nSet the device serial number and send a request to the [Search by device](transaction-search.json/paths/~1Transaction~1Latest~1{device}/get) endpoint.\n\n<br>\n\n```json\ncurl --request GET \\\n  --url https://integrations.payment.haulmer.com/Transaction/Latest/{device} \\\n  --header 'Accept: application/json' \\\n  --header 'X-API-Key: apiKey'\n```\n\n#### Example of successful request response:\n\nIf the request was successful, you will get an **HTTP status code 201 response** with a payload similar to the following:\n\n<br>\n\n```json\n[\n  {\n    \"date\": \"2024-09-26T17:45:38.7631813\",\n    \"cardLast4\": \"4002\",\n    \"paymentType\": \"CREDIT\",\n    \"totalAmount\": 112,\n    \"customFields\": \"1&ID Propio&Prop-09716/1&Producto&Pelota\",\n    \"sequenceNumber\": \"800004830700\"\n  },\n  {\n    \"date\": \"2024-09-26T13:18:04.7160679\",\n    \"cardLast4\": \"4002\",\n    \"paymentType\": \"CREDIT\",\n    \"totalAmount\": 112,\n    \"customFields\": \"1&ID Propio&Prop-09716/1&Producto&Pelota\",\n    \"sequenceNumber\": \"900000889276\"\n  },\n  {\n    \"date\": \"2024-09-26T12:06:18.6938587\",\n    \"cardLast4\": \"4002\",\n    \"paymentType\": \"CREDIT\",\n    \"totalAmount\": 112,\n    \"customFields\": \"1&ID Propio&Prop-09716/1&Producto&Pelota\",\n    \"sequenceNumber\": \"900000882708\"\n  },\n  {\n    \"date\": \"2024-09-26T11:18:21.6803426\",\n    \"cardLast4\": \"4002\",\n    \"paymentType\": \"CREDIT\",\n    \"totalAmount\": 111,\n    \"customFields\": \"1&idXX&245023-2342-2\",\n    \"sequenceNumber\": \"900000879435\"\n  }\n]\n```\n\n#### Example of a failed request response:\n\nIn case of error, you will receive an **HTTP status code 401** and a payload similar to the following:\n\n<br>\n\n```json\n{\n  \"error\": true,\n  \"message\": \"X-API-Key Header not found.\",\n  \"code\": \"INT-MIDDLEWARE-012\"\n}\n```\n\n<br>\n\n---\n\n## Next steps\n\nReview the API reference to [search with filters](transaction-search.json/paths/~1pos-analytics~1v1~1transactions~1search/post) or [search by device](transaction-search.json/paths/~1Transaction~1Latest~1{device}/get).\n"
+  },
+  "servers": [],
+  "paths": {
+    "/pos-analytics/v1/transactions/search": {
+      "post": {
+        "summary": "Search with filters",
+        "description": "List transactions made in a POS terminal. The transactions are returned in sorted order, with the most recent transactions appearing first. \nUse the available filters to search for a specific transaction.\n\n<!-- theme: warning -->\n> #### Important!\n> This will return a maximum of 10,000 transactions.",
+        "operationId": "search-with-filters",
+        "parameters": [
+          {
+            "name": "Private-Credential-Id",
+            "in": "header",
+            "description": "Private key provided by Kushki.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "description": "application/json",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "x-examples": {
+                  "example-1": {
+                    "pos_details": {
+                      "brand": "SUNMI",
+                      "model": "P2-EU",
+                      "version": "Kushki SunmiV1.1.18",
+                      "terminal_id": ""
+                    },
+                    "filters": {
+                      "transaction_type": "UNKNOWN",
+                      "bin": "412378010",
+                      "card_four_digits": "1479",
+                      "start_date": 1662694798,
+                      "end_date": 1662698398,
+                      "time_zone": "+08:00",
+                      "transaction_reference": "f2f29080-0214-42c0-95a5-77ecf3434cd7"
+                    },
+                    "from": 0,
+                    "size": 10
+                  }
+                },
+                "required": [
+                  "page",
+                  "size"
+                ],
+                "properties": {
+                  "page": {
+                    "type": "integer",
+                    "description": "Results page number. You can set the number of elements returned per page in the size property."
+                  },
+                  "size": {
+                    "type": "integer",
+                    "description": "Number of elements to return from the search. **Maximum 500 elements per page**."
+                  },
+                  "filters": {
+                    "type": "object",
+                    "properties": {
+                      "bin": {
+                        "type": "string"
+                      },
+                      "client_transaction_id": {
+                        "type": "string"
+                      },
+                      "end_date": {
+                        "type": "integer",
+                        "description": "UTC Timestamp format (Epoch)"
+                      },
+                      "last_four_digits": {
+                        "type": "string"
+                      },
+                      "start_date": {
+                        "type": "integer",
+                        "description": "UTC Timestamp format (Epoch)"
+                      },
+                      "transaction_reference": {
+                        "type": "string"
+                      },
+                      "transaction_type": {
+                        "type": "string",
+                        "enum": [
+                          "balanceInquiry",
+                          "capture",
+                          "charge",
+                          "checkIn",
+                          "checkout",
+                          "preAuth",
+                          "reAuthorization",
+                          "tip",
+                          "posTip"
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              "examples": {
+                "Query with filters": {
+                  "value": {
+                    "page": 1,
+                    "size": 10,
+                    "filters": {
+                      "bin": "541333",
+                      "last_four_digits": "0653",
+                      "start_date": 1712286000000,
+                      "end_date": 1712322035152,
+                      "client_transaction_id": "5bba557f-3df8-4f07-be20-ed1ad6b28c1d",
+                      "transaction_reference": "62c64ab2-1b09-48bd-ab98-4fa9b1893250",
+                      "transaction_type": "preAuth"
+                    }
+                  }
+                },
+                "Query without filters": {
+                  "value": {
+                    "page": 1,
+                    "size": 10
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "x-examples": {
+                    "example-1": {
+                      "size": 0,
+                      "items": [
+                        {
+                          "transaction_reference": "",
+                          "transcaction_date": "",
+                          "amount": {
+                            "currency": "",
+                            "iva": 0,
+                            "subtotal_iva": 0,
+                            "subtotal_iva0": 0,
+                            "tip": 0,
+                            "extra_taxes": {
+                              "iac": 0
+                            }
+                          },
+                          "card_mask": "",
+                          "transaction_status": "",
+                          "reference_number": "",
+                          "trance_audit_number": "",
+                          "authorization_code": "",
+                          "transaction_type": "",
+                          "transaction_mode": "",
+                          "payment_brand": "",
+                          "merchant_id": "",
+                          "pos_details": {
+                            "terminal_id": "",
+                            "brand": "",
+                            "model": "",
+                            "version": ""
+                          },
+                          "reading_type": "",
+                          "deferred": {
+                            "credit_type": "",
+                            "grace_month": "",
+                            "months": ""
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "transaction_reference": {
+                            "type": "string",
+                            "description": "Unique ID per transaction generated by Kushki"
+                          },
+                          "ticket_number": {
+                            "type": "string",
+                            "maxLength": 18
+                          },
+                          "transaction_date": {
+                            "type": "string"
+                          },
+                          "amount": {
+                            "type": "object",
+                            "properties": {
+                              "currency": {
+                                "type": "string"
+                              },
+                              "iva": {
+                                "type": "integer"
+                              },
+                              "subtotal_iva": {
+                                "type": "integer"
+                              },
+                              "subtotal_iva0": {
+                                "type": "integer"
+                              },
+                              "tip": {
+                                "type": "integer"
+                              },
+                              "extra_taxes": {
+                                "type": "object",
+                                "properties": {
+                                  "iac": {
+                                    "type": "integer"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "card_mask": {
+                            "type": "string"
+                          },
+                          "transaction_status": {
+                            "type": "string",
+                            "enum": [
+                              "APPROVAL",
+                              "DECLINED"
+                            ],
+                            "description": "Transaction status."
+                          },
+                          "reference_number": {
+                            "type": "string"
+                          },
+                          "trance_audit_number": {
+                            "type": "string"
+                          },
+                          "authorization_code": {
+                            "type": "string"
+                          },
+                          "transaction_type": {
+                            "type": "string"
+                          },
+                          "transaction_mode": {
+                            "type": "string"
+                          },
+                          "payment_brand": {
+                            "type": "string"
+                          },
+                          "merchant_id": {
+                            "type": "string"
+                          },
+                          "pos_details": {
+                            "type": "object",
+                            "properties": {
+                              "terminal_id": {
+                                "type": "string"
+                              },
+                              "brand": {
+                                "type": "string"
+                              },
+                              "model": {
+                                "type": "string"
+                              },
+                              "version": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "reading_type": {
+                            "type": "string"
+                          },
+                          "deferred": {
+                            "type": "object",
+                            "properties": {
+                              "credit_type": {
+                                "type": "string"
+                              },
+                              "grace_month": {
+                                "type": "string"
+                              },
+                              "months": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Query transactions": {
+                    "value": {
+                      "items": [
+                        {
+                          "acquirer_bank": "Kushki",
+                          "amount": {
+                            "iva": 0,
+                            "subtotal_iva": 0,
+                            "subtotal_iva0": 231,
+                            "tip": 0,
+                            "currency": "MXN",
+                            "extra_taxes": {}
+                          },
+                          "approval_code": "123456",
+                          "approved_transaction_amount": 231,
+                          "bin_card": "403338",
+                          "card_country": "ARG",
+                          "client_transaction_id": "61659d20-311c-4363-991d-7cdd73d36062",
+                          "country": "Mexico",
+                          "created": 1727462978861,
+                          "foreign_card": true,
+                          "issuing_bank": "CITIBANK",
+                          "last_four_digits": "6782",
+                          "masked_credit_card": "403338XXXXXX6782",
+                          "mcc": "4511",
+                          "merchant_id": "20000000107334554000",
+                          "merchant_name": "LENIPAY",
+                          "metadata": null,
+                          "payment_brand": "VISA",
+                          "payment_method": "card",
+                          "request_amount": 231,
+                          "ticket_number": "111727462978861299",
+                          "transaction_id": "111727462978861299",
+                          "transaction_reference": "5b0c2db4-5551-46d1-aa86-d274f12bfde3",
+                          "transaction_status": "APPROVAL",
+                          "transaction_type": "SALE"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "x-examples": {
+                    "Example 1": {
+                      "code": "E001",
+                      "message": "Cuerpo de la petición inválido."
+                    }
+                  }
+                },
+                "examples": {
+                  "E001: Cuerpo de la petición inválido.": {
+                    "value": {
+                      "code": "E001",
+                      "message": "Cuerpo de la petición inválido."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "Message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "Message"
+                  ],
+                  "x-examples": {
+                    "Example 1": {
+                      "Message": "User is not authorized to access this resource"
+                    }
+                  }
+                },
+                "examples": {
+                  "User is not authorized to access this resource": {
+                    "value": {
+                      "Message": "User is not authorized to access this resource"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-stoplight": {
+          "id": "uny68r9hgl39b"
+        }
+      },
+      "servers": [
+        {
+          "url": "https://api.kushkipagos.com",
+          "description": ""
+        }
+      ]
+    },
+    "/Transaction/Latest/{device}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "device",
+          "in": "path",
+          "required": true,
+          "description": "Device serial number."
+        }
+      ],
+      "get": {
+        "summary": "Search by device",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "x-examples": {
+                    "Example 1": [
+                      {
+                        "sequenceNumber": "800004830700",
+                        "date": "2024-09-26T17:45:38.7631813",
+                        "cardLast4": "8651",
+                        "totalAmount": 112,
+                        "paymentType": "CREDIT",
+                        "customFields": "1&ID Propio&Prop-09716/1&Producto&Pelota/0&ID Device&TJ71246J20220"
+                      },
+                      {
+                        "sequenceNumber": "900000889276",
+                        "date": "2024-09-26T13:18:04.7160679",
+                        "cardLast4": "9429",
+                        "totalAmount": 112,
+                        "paymentType": "CREDIT",
+                        "customFields": "1&ID Propio&Prop-09716/1&Producto&Pelota/0&ID Device&TJ71246J20220"
+                      },
+                      {
+                        "sequenceNumber": "900000882708",
+                        "date": "2024-09-26T12:06:18.6938587",
+                        "cardLast4": "0355",
+                        "totalAmount": 112,
+                        "paymentType": "CREDIT",
+                        "customFields": "1&ID Propio&Prop-09716/1&Producto&Pelota/0&ID Device&TJ71246J20220"
+                      },
+                      {
+                        "sequenceNumber": "900000879435",
+                        "date": "2024-09-26T11:18:21.6803426",
+                        "cardLast4": "0355",
+                        "totalAmount": 111,
+                        "paymentType": "CREDIT",
+                        "customFields": "1&idXX&245023-2342-2"
+                      },
+                      {
+                        "sequenceNumber": "900000879249",
+                        "date": "2024-09-26T11:15:32.2327038",
+                        "cardLast4": "9429",
+                        "totalAmount": 111,
+                        "paymentType": "CREDIT",
+                        "customFields": "1&idXX&245023-2342-2"
+                      },
+                      {
+                        "sequenceNumber": "900000878825",
+                        "date": "2024-09-26T11:09:09.8909899",
+                        "cardLast4": "9429",
+                        "totalAmount": 101,
+                        "paymentType": "CREDIT",
+                        "customFields": null
+                      },
+                      {
+                        "sequenceNumber": "900000350045",
+                        "date": "2024-09-17T12:20:57.1788918",
+                        "cardLast4": "3771",
+                        "totalAmount": 573,
+                        "paymentType": "CREDIT",
+                        "customFields": null
+                      },
+                      {
+                        "sequenceNumber": "800001103304",
+                        "date": "2024-08-21T14:04:10.6388308",
+                        "cardLast4": "0355",
+                        "totalAmount": 500,
+                        "paymentType": "CREDIT",
+                        "customFields": null
+                      },
+                      {
+                        "sequenceNumber": "800000168791",
+                        "date": "2024-08-08T20:15:42.3616331",
+                        "cardLast4": "3771",
+                        "totalAmount": 100,
+                        "paymentType": "CREDIT",
+                        "customFields": null
+                      },
+                      {
+                        "sequenceNumber": "100023707706",
+                        "date": "2024-08-01T15:48:41.3878793",
+                        "cardLast4": "3771",
+                        "totalAmount": 100,
+                        "paymentType": "CREDIT",
+                        "customFields": null
+                      },
+                      {
+                        "sequenceNumber": "800000004232",
+                        "date": "2024-07-26T12:23:48.585097",
+                        "cardLast4": "0012",
+                        "totalAmount": 100,
+                        "paymentType": "CREDIT",
+                        "customFields": null
+                      },
+                      {
+                        "sequenceNumber": "800000004219",
+                        "date": "2024-07-26T12:21:31.1291942",
+                        "cardLast4": "0012",
+                        "totalAmount": 100,
+                        "paymentType": "DEBIT",
+                        "customFields": null
+                      },
+                      {
+                        "sequenceNumber": "800000004192",
+                        "date": "2024-07-26T12:17:45.8801096",
+                        "cardLast4": "0016",
+                        "totalAmount": 100,
+                        "paymentType": "DEBIT",
+                        "customFields": null
+                      },
+                      {
+                        "sequenceNumber": "800000004183",
+                        "date": "2024-07-26T12:16:30.8943357",
+                        "cardLast4": "0016",
+                        "totalAmount": 100,
+                        "paymentType": "DEBIT",
+                        "customFields": null
+                      },
+                      {
+                        "sequenceNumber": "800000004180",
+                        "date": "2024-07-26T12:16:05.9228316",
+                        "cardLast4": "0001",
+                        "totalAmount": 100,
+                        "paymentType": "DEBIT",
+                        "customFields": null
+                      }
+                    ]
+                  },
+                  "anyOf": [
+                    {
+                      "type": [
+                        "array"
+                      ],
+                      "items": {
+                        "x-stoplight": {
+                          "id": "h3azvhthd27ro"
+                        },
+                        "type": "object",
+                        "properties": {
+                          "sequenceNumber": {
+                            "type": "string",
+                            "x-stoplight": {
+                              "id": "rcn54az8htq8z"
+                            }
+                          },
+                          "date": {
+                            "type": "string",
+                            "x-stoplight": {
+                              "id": "y5fdqylpbe2aa"
+                            }
+                          },
+                          "cardLast4": {
+                            "type": "string",
+                            "x-stoplight": {
+                              "id": "w4oz2gyfh3lfk"
+                            },
+                            "description": "Last 4 digits of the card."
+                          },
+                          "totalAmount": {
+                            "type": "integer",
+                            "x-stoplight": {
+                              "id": "wok3kd41xydsx"
+                            }
+                          },
+                          "paymentType": {
+                            "x-stoplight": {
+                              "id": "gurh3qvwf7fwp"
+                            },
+                            "enum": [
+                              "CREDIT",
+                              "DEBIT"
+                            ]
+                          },
+                          "customFields": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "x-stoplight": {
+                              "id": "akt6hv8972alb"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "x-stoplight": {
+                        "id": "a0y69y82962ox"
+                      },
+                      "properties": {
+                        "error": {
+                          "type": "boolean",
+                          "x-stoplight": {
+                            "id": "jxy7jpqfrp4yr"
+                          }
+                        },
+                        "message": {
+                          "type": "string",
+                          "x-stoplight": {
+                            "id": "k2bsc3hrziyzp"
+                          }
+                        },
+                        "code": {
+                          "type": "string",
+                          "x-stoplight": {
+                            "id": "82mfm6fbobht1"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "Successful request": {
+                    "value": [
+                      {
+                        "sequenceNumber": "800004830700",
+                        "date": "2024-09-26T17:45:38.7631813",
+                        "cardLast4": "4002",
+                        "totalAmount": 112,
+                        "paymentType": "CREDIT",
+                        "customFields": "1&ID Propio&Prop-09716/1&Producto&Pelota"
+                      },
+                      {
+                        "sequenceNumber": "900000889276",
+                        "date": "2024-09-26T13:18:04.7160679",
+                        "cardLast4": "4002",
+                        "totalAmount": 112,
+                        "paymentType": "CREDIT",
+                        "customFields": "1&ID Propio&Prop-09716/1&Producto&Pelota"
+                      },
+                      {
+                        "sequenceNumber": "900000882708",
+                        "date": "2024-09-26T12:06:18.6938587",
+                        "cardLast4": "4002",
+                        "totalAmount": 112,
+                        "paymentType": "CREDIT",
+                        "customFields": "1&ID Propio&Prop-09716/1&Producto&Pelota"
+                      },
+                      {
+                        "sequenceNumber": "900000879435",
+                        "date": "2024-09-26T11:18:21.6803426",
+                        "cardLast4": "4002",
+                        "totalAmount": 111,
+                        "paymentType": "CREDIT",
+                        "customFields": "1&idXX&245023-2342-2"
+                      },
+                      {
+                        "sequenceNumber": "900000879249",
+                        "date": "2024-09-26T11:15:32.2327038",
+                        "cardLast4": "4002",
+                        "totalAmount": 111,
+                        "paymentType": "CREDIT",
+                        "customFields": "1&idXX&245000-2342-2"
+                      },
+                      {
+                        "sequenceNumber": "900000878825",
+                        "date": "2024-09-26T11:09:09.8909899",
+                        "cardLast4": "4002",
+                        "totalAmount": 101,
+                        "paymentType": "CREDIT",
+                        "customFields": null
+                      },
+                      {
+                        "sequenceNumber": "900000350045",
+                        "date": "2024-09-17T12:20:57.1788918",
+                        "cardLast4": "4002",
+                        "totalAmount": 573,
+                        "paymentType": "CREDIT",
+                        "customFields": null
+                      },
+                      {
+                        "sequenceNumber": "800001103304",
+                        "date": "2024-08-21T14:04:10.6388308",
+                        "cardLast4": "4002",
+                        "totalAmount": 500,
+                        "paymentType": "CREDIT",
+                        "customFields": null
+                      },
+                      {
+                        "sequenceNumber": "800000168791",
+                        "date": "2024-08-08T20:15:42.3616331",
+                        "cardLast4": "4002",
+                        "totalAmount": 100,
+                        "paymentType": "CREDIT",
+                        "customFields": null
+                      },
+                      {
+                        "sequenceNumber": "100023707706",
+                        "date": "2024-08-01T15:48:41.3878793",
+                        "cardLast4": "4002",
+                        "totalAmount": 100,
+                        "paymentType": "CREDIT",
+                        "customFields": null
+                      },
+                      {
+                        "sequenceNumber": "800000004232",
+                        "date": "2024-07-26T12:23:48.585097",
+                        "cardLast4": "4002",
+                        "totalAmount": 100,
+                        "paymentType": "CREDIT",
+                        "customFields": null
+                      },
+                      {
+                        "sequenceNumber": "800000004219",
+                        "date": "2024-07-26T12:21:31.1291942",
+                        "cardLast4": "4002",
+                        "totalAmount": 100,
+                        "paymentType": "DEBIT",
+                        "customFields": null
+                      },
+                      {
+                        "sequenceNumber": "800000004192",
+                        "date": "2024-07-26T12:17:45.8801096",
+                        "cardLast4": "4002",
+                        "totalAmount": 100,
+                        "paymentType": "DEBIT",
+                        "customFields": null
+                      },
+                      {
+                        "sequenceNumber": "800000004183",
+                        "date": "2024-07-26T12:16:30.8943357",
+                        "cardLast4": "4002",
+                        "totalAmount": 100,
+                        "paymentType": "DEBIT",
+                        "customFields": null
+                      },
+                      {
+                        "sequenceNumber": "800000004180",
+                        "date": "2024-07-26T12:16:05.9228316",
+                        "cardLast4": "4002",
+                        "totalAmount": 100,
+                        "paymentType": "DEBIT",
+                        "customFields": null
+                      }
+                    ]
+                  },
+                  "INT-TRANSACTIONS-006 - API Key doesn't have such device with SN X.": {
+                    "value": {
+                      "error": true,
+                      "message": "API Key doesn't have such device with SN X",
+                      "code": "INT-TRANSACTIONS-006"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "error": true,
+                      "message": "X-API-Key Header not found.",
+                      "code": "INT-MIDDLEWARE-012"
+                    }
+                  }
+                },
+                "examples": {
+                  "INT-MIDDLEWARE-012 - X-API-Key Header not found.": {
+                    "value": {
+                      "error": true,
+                      "message": "X-API-Key Header not found.",
+                      "code": "INT-MIDDLEWARE-012"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-Transaction-Latest-device",
+        "x-stoplight": {
+          "id": "7t5otl0zmlzkc"
+        },
+        "description": "Get the last 15 authorized transactions by device.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "X-API-Key",
+            "required": true,
+            "description": "API Key provided by Kushki."
+          }
+        ]
+      },
+      "servers": [
+        {
+          "url": "https://integrations.payment.haulmer.com",
+          "description": ""
+        }
+      ]
+    }
+  },
+  "components": {
+    "schemas": {}
+  }
+}

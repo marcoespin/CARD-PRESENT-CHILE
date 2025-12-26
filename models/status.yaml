@@ -1,0 +1,21 @@
+title: status
+x-stoplight:
+  id: rjc0c1bbfog5j
+description: |-
+  Request status.
+
+  * `sent`: payment request is received in the POS app.
+  * `pending`: request created, waiting for payment information or other action in the POS app.
+  * `canceled`: request cancelled in the POS app.
+  * `processing`: processing payment information.
+  * `Failed`: an error occurred when processing payment information.
+  * `Completed`: Payment information was processed successfully.
+examples:
+  - sent
+enum:
+  - sent
+  - pending
+  - canceled
+  - processing
+  - Failed
+  - Completed

@@ -1,0 +1,28 @@
+title: extra_taxes
+x-stoplight:
+  id: 67flk6rn3h0lb
+type: object
+properties:
+  airport_tax:
+    type: number
+    x-stoplight:
+      id: wa1s457j2wykd
+    description: |
+      Airport tax.
+  iac:
+    type: number
+    x-stoplight:
+      id: irjoui1qqyljg
+    description: |
+      Impuesto Agregado al Consumo.
+  ice:
+    type: number
+    x-stoplight:
+      id: ygzwl8y0c0lsz
+    description: |
+      Set it to `0` in case the transaction has no ICE (Impuesto a Consumos Especiales).
+  travel_agency:
+    type: number
+    x-stoplight:
+      id: bmf8kftvsllzd
+    description: Used in airlines.

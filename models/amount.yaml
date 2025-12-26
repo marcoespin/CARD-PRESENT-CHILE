@@ -1,0 +1,42 @@
+title: amount
+x-stoplight:
+  id: ayezsgavlciq8
+type: object
+required:
+  - currency
+  - iva
+  - subtotal_iva
+  - subtotal_iva0
+properties:
+  currency:
+    x-stoplight:
+      id: o94yb2s68jrum
+    enum:
+      - MXN
+      - COP
+      - USD
+      - CLP
+      - PEN
+  iva:
+    type: number
+    x-stoplight:
+      id: qg757g4t508pl
+    description: Set it to `0` in case the transaction has no iva taxes.
+  subtotal_iva:
+    type: number
+    x-stoplight:
+      id: z3p4c98exrotg
+    description: Set it to `0` in case the transaction has no taxes
+  subtotal_iva0:
+    type: number
+    x-stoplight:
+      id: o1gzjrg1ii6in
+    description: 'Set the total amount of the transaction here in case it has no taxes. Otherwise, set it to `0`'
+  extra_taxes:
+    $ref: ./extra_taxes.yaml
+    x-stoplight:
+      id: nfd22ivekb1a4
+  tip:
+    type: number
+    x-stoplight:
+      id: lruhincw4cwol

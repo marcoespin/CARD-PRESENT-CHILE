@@ -1,0 +1,15 @@
+title: deferred
+x-stoplight:
+  id: 96ju1d1kxra9n
+type: object
+description: Required when `is_deferred` = `true`.
+required:
+  - months
+properties:
+  months:
+    type: string
+    x-stoplight:
+      id: pdbcrasi0346k
+    description: Amount of installments.
+examples:
+  - months: '12'

@@ -1,0 +1,17 @@
+title: dteType
+x-stoplight:
+  id: 6ntqt2bycxw51
+enum:
+  - 0
+  - 33
+  - 48
+  - 99
+description: |
+  Type of *Documento Tributario Electrónico* (DTE).
+
+  * `0`: Comprobante afecto. By default.
+  * `33`: Factura afecta.
+  * `48`: Boleta afecta.
+  * `99`:  Exempt document. You must send the `exemptAmount` property and it must be equal to the `amount` property .
+examples:
+  - 0

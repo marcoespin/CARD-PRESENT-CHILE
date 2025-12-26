@@ -1,0 +1,1392 @@
+{
+  "openapi": "3.1.0",
+  "x-stoplight": {
+    "id": "9b6nt19u6n1ps"
+  },
+  "info": {
+    "title": "Cloud terminal API",
+    "version": "",
+    "description": "<!-- theme: danger  -->\n>#### Product in beta version 🔐\n>\n> We are working on our __beta__ version. Stay tuned for its official release! You can also contact your __account manager__ for more information. \n\nCreate new payment experiences at your store. **Cloud Terminal API** allows you to send payment requests to a terminal over the internet using a Rest API from your point of sale (POS) system. Learn how to integrate a terminal via Cloud Terminal API in this guide.\n\n<!-- theme: warning -->\n> #### Service available in the following countries:\n>\n> Chile.\n\n<br>\n\n<!-- focus: false -->\n\n![Cloud terminal API](../assets/images/cloud-terminal-api.png)\n\n<br>\n\n## Main features\n\n* **Easy to integrate**: Integrate a terminal across any platform and any device that allows HTTP requests.\n* **Scalable**: the API architecture allows you to scale, adding terminals according to your needs, without major difficulty.\n* **Control**: manage your entire operation from your POS. Delegate payment operations through your POS to our terminals.\n* **Security**: communication with our terminals is encrypted at all times to protect sensitive information, according to the strictest industry standards.\n\n## Requirements\n\nBefore you can perform an integration, you must meet the following requirements:\n\n* Have a compatible reader.\n* Have your keys necessary for integration.\n* Stable internet connection.\n* Firewalls and similar services: allow communication with the domains described for correct operation.\n\n## Environments\n\nYou can simulate tests in the `Dev` environment to make the necessary adjustments to your system. Remember that no real transactions will be processed in this environment. Choose the right environment to send notifications to the terminal from your POS.\n\n<br>\n\n| Enviroment | Base Url | \n|---------|----------|\n| `Dev` | - | \n| `Live` | https://integrations.payment.haulmer.com |\n\n<br>\n\n## Payment request (with idempotency)\n\nFollow the steps below to send a payment request to a terminal via the Cloud Terminal API.\n\n### Collect a payment\n\nSend a request to the [Collect card payments](cloud-terminal-api.json/paths/~1PaymentRequest~1Create/post) endpoint with payment settings to send a request to a terminal.\n\n```json\ncurl --request POST \\\n  --url https://integrations.payment.haulmer.com/PaymentRequest/Create \\\n  --header 'Accept: application/json' \\\n  --header 'Content-Type: application/json' \\\n  --header 'X-API-Key: apiKey' \\\n  --data '{\n  {\n  \"idempotencyKey\": \"string\",\n  \"amount\": 0,\n  \"device\": \"string\",\n  \"description\": \"string\",\n  \"dteType\": 0,\n  \"extraData\": {\n    \"exemptAmount\": 0,\n    \"customFields\": [\n      {\n        \"name\": \"string\",\n        \"value\": \"string\",\n        \"print\": true\n      }\n    ],\n    \"sourceName\": \"string\",\n    \"sourceVersion\": \"string\"\n  }\n}\n```\n\n#### Response\n\nIf the request was successful, you will get an **HTTP status code 201** response from the API with a payload similar to the following:\n\n```json\n{\n  \"idempotencyKey\": \"ef59617f-7633-4aca-965e-e9993f66bdbc\",\n  \"status\": \"pending\",\n  \"amount\": 1600,\n  \"deviceId\": 690,\n  \"description\": \"Servicio de afiliación\",\n  \"extraData\": {\n    \"exemptAmount\": 1600,\n    \"customFields\": [\n      {\n        \"name\": \"Contacto\",\n        \"value\": \"9 51221345\",\n        \"print\": true\n      }\n    ]\n  }\n}\n```\n\nPlease check the [Request status](#request-status) section to find out the status of a request.\n\nAlso, if the request was successful, the **payment app** will display a screen requesting payment information according to the settings submitted. See the [Payment process](#payment-process) section for more information.\n\n### Idempotency\n\nIn the payment system, idempotency ensures that multiple requests with the same purpose do not create duplicate transactions. The idempotency process is automatically managed by the system and requires no action from the customer.\n#### Generating Idempotency\nTo create a new payment request, the client must include the idempotency key (mandatory). The `idempotencyKey` must be unique for each request and is used to track the transaction's status.\n#### Preventing duplicate requests\n- If the same payment request is sent multiple times (e.g., due to network issues or a timeout), the system verifies if an idempotencyKey is associated with a previous request within the last 10 minutes.\n- If the idempotencyKey already exists and the prior request is in the completed or sent status, the system will not process the transaction again.\n- If the prior request is in the processing status, the system will indicate that the transaction is still in process, avoiding multiple payment attempts.\n#### Idempotency Timeout\nThe system retains idempotency for 10 minutes from the time the request is created. If a duplicate request is detected within this period, additional attempts are ignored to prevent duplicates.\n#### Request Limits\nTo prevent system and terminal overload, there is flow control for payment requests. Each terminal has the following restrictions:\n- Maximum pending requests: A terminal can have up to 5 pending requests in queue.\n- Requests per minute limit: Only 1 request can be sent per minute. Exceeding this limit will result in a 429 Too Many Requests error.\n### Request status (with idempotency)\n\nKnow the status of a request sent when [collecting a payment](#collect-a-payment).\n\n* `sent`: payment request is received in the payment app.\n* `pending`: request created, waiting for payment information or other action in the payment app.\n* `canceled`: request cancelled in the payment app.\n* `processing`: processing payment information.\n* `failed`: an error occurred when processing payment information.\n* `completed`: payment information was processed successfully.\n\nSend a request to the [request status](cloud-terminal-api.json/paths/~1PaymentRequest~1{paymentRequestId}/get) endpoint setting the payment (`idempotencyKey`) sent in the request when [collecting a payment](#collect-a-payment).\n\n```json\ncurl --request GET \\\n  --url https://integrations.payment.haulmer.com/RemotePayment/v2/GetPaymentRequest/{idempotencyKey}\n  --header 'Accept: application/json' \\\n  --header 'X-API-Key: apiKey'\n```\n\n#### Response\n\nIf the request was successful, you will get an **HTTP status code 201** response from the API with a payload similar to the following:\n\n```json\n{\n  \"idempotencyKey\": \"string\",\n  \"status\": \"sent\",\n  \"amount\": 0,\n  \"device\": \"string\",\n  \"dteType\": 0,\n  \"extraData\": {\n    \"exemptAmount\": 0,\n    \"customFields\": [\n      {\n        \"name\": \"string\",\n        \"value\": \"string\",\n        \"print\": true\n      }\n    ],\n    \"sourceName\": \"string\",\n    \"sourceVersion\": \"string\"\n  },\n  \"transactionReference\": \"string\",\n  \"acquirerId\": \"string\"\n}\n```\n\nGet the status of the request from the `status` property.\n\n## Payment process\n\nFollow the steps below to continue the payment process once the terminal receives a payment request.\n\n### Integration mode\n\nIn order to receive a request via Cloud Terminal API, the terminal must be in **integration mode**. Go to the Payments app settings in the top left menu.\n\n![calculator](../assets/images/calculator.png)\n\nSelect Integration Mode.\n\n![app settings](../assets/images/app-settings.png)\n\nThe terminal will be listening for new requests.\n\n![integration mode](../assets/images/integration-mode.png)\n\n### Payment\n\nOn the payment confirmation screen, click the **Aceptar** button if the payment information is correct or click the **Rechazar** button to cancel the request.\n\n![Payment screen](../assets/images/payment-screen.png)\n\n### Tipping\n\nClick the **Aceptar** button to continue the payment process. If tipping is enabled within the payment app settings, the screen to enter a tip amount will appear. Select the desired option to add a tip percentage or click the **Sin propina** button to skip the tip entry and continue with the payment process.\n\n![Tip screen](../assets/images/tip-screen.png)\n\n> **Note**: In case the tipping option is not enabled within the payment app settings, the [payment method](#payment-method) screen will appear instead.\n\n### Payment method\n\nSelect the **Crédito** option for credit cards and **Débito** for debit cards.\n\n![Payment method screen](../assets/images/payment-method-screen.png)\n\n### Cashback\n\nIf cashback is enabled within the payment app settings, the screen to enter a cashback amount will appear. Select the desired option or click the **Omitir** button to continue with the payment process.\n\n![Cashback screen](../assets/images/cashback-screen.png)\n\n> **Note**: In case the cashback option is not enabled within the payment app settings, the [card reading](#card-reading) screen will appear instead.\n\n### Card reading\n\nAfter you have set up the transaction settings, the card reading screen will appear waiting for the payment information.\n\n![Card reading screen](../assets/images/card-reading-screen.png)\n\n> **Note**: at this point the [request status](#request-status) will change to `pending`.\n\nIn case PIN entry is required, the PIN entry screen will appear.\n\n![Pin entry screen](../assets/images/pin-entry-screen.png)\n\nWhen payment information is entered, the terminal will read, encrypt and send the information to Kushki for processing.\n\n![Processing payment screen](../assets/images/processing-payment-screen.png)\n\n> **Note**: at this point the [request status](#request-status) will change to `processing`.\n\n### Transaction result\n\nOnce the information is processed by Kushki, the transaction result will appear in the payment app. In case the transaction has been processed successfully, you can send the transaction receipt by email, print it or skip printing the ticket. In case of an error, a message will appear with the error information.\n\n![Transaction result screen](../assets/images/transaction-result-screen.png)\n\n> **Note**: at this point the [request status](#request-status) will change to `Completed` on success or to `Failed` in case of an error.\n\n#### Webhook\n\nIf you have set up a webhook, you will get a notification with the result of the transaction. Get the result of the operation through the `response_code ` or `transaction_status ` properties in the received payload.\n\n```json\n{\n    \"country\": \"Mexico\",\n    \"franchise\": \"MASTERCARD\",\n    \"metadata\": {\n    \"transaccionCodigo\": \"1245\",\n    \"type\": \"test\",\n    \"transaccionId\": \"1234\"\n  },\n    \"available\": true,\n    \"channel\": \"POS\",\n    \"public_credential_id\": \"146cbf33c7fd45c4111cbf9d3f04478d\",\n    \"client_transaction_id\": \"ae6dd41a-9173-4ec7-8734-3178454ef341\",\n    \"mcc\": \"1234\",\n    \"card_country\": \"CHL\",\n    \"processor_name\": \"MASTERCARD\",\n    \"transaction_reference\": \"718fa526-6f41-405f-a1f5-a71db52dfdd2\",\n    \"payment_method\": \"card\",\n    \"card_details\": {\n        \"prosa_info\": {},\n        \"reading_type\": \"MCR\"\n    },\n    \"transaction_id\": \"111663595155516279\",\n    \"created\": 1663895155240,\n    \"merchant_name\": \"Tu libreria\",\n    \"transaction_type\": \"SALE\",\n    \"processor\": {\n        \"code\": \"000\",\n        \"message\": \"Transacción Aprobada.\"\n    },\n    \"reference_number\": \"226520101801\",\n    \"tax_id\": \"7283839521223\",\n    \"sync_mode\": \"online\",\n    \"additional_info\": {\n        \"f7\": \"0922200555\",\n        \"f63\": \"MDS8TNCN9\",\n        \"f11\": \"101883\",\n        \"f37\": \"226520101883\"\n    },\n    \"subtotal_iva0\": 101.99,\n    \"deferred\": {\n        \"months\": \"1\"\n    },\n    \"response_code\": \"00\",\n    \"transaction_status\": \"APPROVAL\",\n    \"social_reason\": \"TU LIBRERIA\",\n    \"payment_brand\": \"MASTERCARD\",\n    \"acquirer_bank\": \"Kushki\",\n    \"request_amount\": 101.99,\n    \"merchant_id\": \"20000000305053342000\",\n    \"approved_transaction_amount\": 101.99,\n    \"merchant_category\": \"Medium\",\n    \"acq_transaction_type\": \"charge\",\n    \"security\": {\n        \"ip\": \"187.212.254.148\",\n        \"user_agent\": \"PostmanRuntime/7.29.2\"\n    },\n    \"masked_credit_card\": \"545195XXXXXX5480\",\n    \"authorization_code\": \"533804\",\n    \"issuing_bank\": \"BankACQ\",\n    \"processor_id\": \"1652365464\",\n    \"foreign_card\": true,\n    \"pos_details\": {\n        \"model\": \"P2-EU\",\n        \"location\": {\n            \"latitude\": -0.1848534,\n            \"longitude\": -78.4769761\n        },\n        \"brand\": \"SUNMI\",\n        \"version\": \"Kushki SunmiV1.1.13\",\n        \"terminal_id\": \"PB04209860004\"\n    },\n    \"last_four_digits\": \"5480\",\n    \"approval_code\": \"533804\",\n    \"amount\": {\n        \"extra_taxes\": {},\n        \"currency\": \"MXN\",\n        \"subtotal_iva0\": 101.99\n    },\n    \"rules_response\": {\n        \"country\": \"MEX\",\n        \"address\": \"Centro 123\",\n        \"business_category\": \"0\",\n        \"commercial_executive\": \"user@example.com\",\n        \"authorizer\": {\n            \"authorizer_name\": \"MASTERCARD\",\n            \"soft_descriptor\": \"KSK*TEST\",\n            \"authorizer_bank_id\": \"\",\n            \"authorizer_type\": \"\",\n            \"commerce_code\": \"353453\",\n            \"retailer_id\": \"\",\n            \"authorizer_acquirer_bin\": \"545195\",\n            \"category_model\": \"0\",\n            \"terminal_id\": \"1652365413\",\n            \"authorizer_alias\": \"MASTERCARD\",\n            \"url\": \"http://internal-k8s-acquirer-acquirer-83c4eec5cf-1220747559.us-east-1.elb.amazonaws.com/mc/\"\n        },\n        \"city\": \"Monterrey\",\n        \"contact_person\": \"John Doe\",\n        \"merchant_name\": \"Tu libreria\",\n        \"telephone\": \"8100000001\",\n        \"mcc\": \"1234\",\n        \"tax_id\": \"asdf12345678\",\n        \"url\": \"http://internal-k8s-acquirer-acquirer-83c4eec5cf-1220747559.us-east-1.elb.amazonaws.com/mc/\",\n        \"zip_code\": \"64000\",\n        \"province\": \"NUEVO LEON\",\n        \"tcc\": \"H\",\n        \"total_amount\": \"101.990000\",\n        \"business_registration_id\": \"000000000001\",\n        \"business_line\": \"37006\",\n        \"currency\": \"MXN\",\n        \"id\": \"1652365464\",\n        \"acquirer_type\": \"kushki\"\n    },\n    \"acq_transaction_scope\": \"international\",\n    \"contact_details\": {\n        \"document_number\": \"123666\",\n        \"document_type\": \"0\"\n    },\n    \"acq_transaction_mode\": \"Authorization\",\n    \"card_type\": \"credit\",\n    \"ticket_number\": \"111663890155240264\",\n    \"card_country_code\": \"MEX\",\n    \"credential_alias\": \"Tu libreria\",\n    \"bin_card\": \"545195\",\n    \"credential_id\": \"245c10532cd844e28e4ec9a83159d89b\",\n    \"transactionReference\": \"718fa526-6f41-405f-a1f5-a71db52dfdd2\"\n}\n```\n\nSee the [webhooks](../docs/webhooks/introduction.md) documentation for more information.\n\nContinue with your established process according to the transaction response.\n\n---\n\n## Next steps\n\nReview the API reference to [collect card payments](cloud-terminal-api.json/paths/~1PaymentRequest~1Create/post) or [request status](cloud-terminal-api.json/paths/~1PaymentRequest~1{paymentRequestId}/get)."
+  },
+  "servers": [],
+  "paths": {
+    "/PaymentRequest/Create": {
+      "post": {
+        "summary": "Collect card payments",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "x-examples": {
+                    "Example 1": {
+                      "paymentRequestId": 1643,
+                      "status": "Pending",
+                      "deviceId": "PBFAKESERIAL",
+                      "amount": 15000,
+                      "dteType": 48,
+                      "extraData": {
+                        "taxIdnValidation": "8886274-2",
+                        "sourceName": "Nombre App Integradora",
+                        "sourceVersion": "2023.01.20-6",
+                        "customFields": [
+                          {
+                            "name": "id XXX",
+                            "value": "245023-2342-2",
+                            "print": true
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "properties": {
+                    "paymentRequestId": {
+                      "type": "string",
+                      "description": "Payment request id for status query.",
+                      "x-stoplight": {
+                        "id": "kwwxvxsmree2p"
+                      }
+                    },
+                    "status": {
+                      "$ref": "../models/status.yaml"
+                    },
+                    "deviceId": {
+                      "type": "string"
+                    },
+                    "amount": {
+                      "type": "integer"
+                    },
+                    "dteType": {
+                      "$ref": "../models/dteType.yaml"
+                    },
+                    "extraData": {
+                      "type": "object",
+                      "properties": {
+                        "taxIdnValidation": {
+                          "type": "string"
+                        },
+                        "sourceName": {
+                          "type": "string"
+                        },
+                        "sourceVersion": {
+                          "type": "string"
+                        },
+                        "customFields": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              },
+                              "print": {
+                                "type": "boolean"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Successful request": {
+                    "value": {
+                      "idempotencyKey": "ef59617f-7633-4aca-965e-e9993f66bdbc",
+                      "status": "pending",
+                      "amount": 1600,
+                      "deviceId": 690,
+                      "description": "Servicio de afiliación",
+                      "extraData": {
+                        "exemptAmount": 1600,
+                        "customFields": [
+                          {
+                            "name": "Contacto",
+                            "value": "9 51221345",
+                            "print": true
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "x-examples": {
+                    "Example 1": {
+                      "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+                      "title": "One or more validation errors occurred.",
+                      "status": 400,
+                      "errors": {
+                        "Device": [
+                          "The Device field is required."
+                        ]
+                      },
+                      "traceId": "00-d11abb1a64a242ec53fa0dc0f753b639-1d1d5f4d29b50041-00"
+                    }
+                  },
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    },
+                    "errors": {
+                      "type": "object",
+                      "properties": {
+                        "Device": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "traceId": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "boolean",
+                      "x-stoplight": {
+                        "id": "73i89jlwrczdf"
+                      }
+                    },
+                    "code": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "08l112snr6bxt"
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "tlmr5l4ewg6v9"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "The device field is required.": {
+                    "value": {
+                      "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+                      "title": "One or more validation errors occurred.",
+                      "status": 400,
+                      "errors": {
+                        "Device": [
+                          "The Device field is required."
+                        ]
+                      },
+                      "traceId": "00-d11abb1a64a242ec53fa0dc0f753b639-1d1d5f4d29b50041-00"
+                    }
+                  },
+                  "I-02 - Custom field length invalid.": {
+                    "value": {
+                      "error": true,
+                      "code": "I-02",
+                      "message": "Custom field length invalid."
+                    }
+                  },
+                  "MR-000 - Not Authorized": {
+                    "value": {
+                      "error": true,
+                      "code": "MR-000",
+                      "message": "Not Authorized"
+                    }
+                  },
+                  "MR-100 - Device for API-Key doesn't exist.": {
+                    "value": {
+                      "error": true,
+                      "code": "MR-100",
+                      "message": "Device for API-Key doesn't exist"
+                    }
+                  },
+                  "MR-110 - Transaction Amount is less than allowed minimum.": {
+                    "value": {
+                      "error": true,
+                      "code": "MR-110",
+                      "message": "Transaction Amount is less than allowed minimum"
+                    }
+                  },
+                  "MR-120 - Transaction Amount is more than allowed.": {
+                    "value": {
+                      "error": true,
+                      "code": "MR-120",
+                      "message": "Transaction Amount is more than allowed"
+                    }
+                  },
+                  "MR-130 - DTE type not recognized.": {
+                    "value": {
+                      "error": true,
+                      "code": "MR-130",
+                      "message": "DTE type not recognized"
+                    }
+                  },
+                  "MR-140 - No exempt amount found for DTE Type 99.": {
+                    "value": {
+                      "error": true,
+                      "code": "MR-140",
+                      "message": "No exempt amount found for DTE Type 99"
+                    }
+                  },
+                  "MR-141 - Exempt amount not equal to transaction amount.": {
+                    "value": {
+                      "error": true,
+                      "code": "MR-141",
+                      "message": "Exempt amount not equal to transaction amount"
+                    }
+                  },
+                  "MR-150 - Exempt Amount is not less than transaction amount": {
+                    "value": {
+                      "error": true,
+                      "code": "MR-150",
+                      "message": "Exempt Amount is not less than transaction amount"
+                    }
+                  },
+                  "MR-160 - Payment Request doesn't exists.": {
+                    "value": {
+                      "error": true,
+                      "code": "MR-160",
+                      "message": "Payment Request doesn't exists"
+                    }
+                  },
+                  "MR-180 - Payment Request Queue for the device is full.": {
+                    "value": {
+                      "error": true,
+                      "code": "MR-180",
+                      "message": "Payment Request Queue for the device is full"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "error": true,
+                      "message": "X-API-Key Header not found.",
+                      "code": "INT-MIDDLEWARE-012"
+                    }
+                  }
+                },
+                "examples": {
+                  "INT-MIDDLEWARE-012 - X-API-Key Header not found.": {
+                    "value": {
+                      "error": true,
+                      "message": "X-API-Key Header not found.",
+                      "code": "INT-MIDDLEWARE-012"
+                    }
+                  },
+                  "INT-MIDDLEWARE-010 - Unknown API Key.": {
+                    "value": {
+                      "error": true,
+                      "message": "Unknown API Key.",
+                      "code": "INT-MIDDLEWARE-010"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "create-payment-request",
+        "x-stoplight": {
+          "id": "3hpo5wk9wbfp5"
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "X-API-Key",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "x-examples": {
+                  "Example 1": {
+                    "device": "PBFAKESERIAL",
+                    "amount": 15000,
+                    "dteType": 48,
+                    "extraData": {
+                      "taxIdnValidation": "8886274-2",
+                      "sourceName": "Nombre App Integradora",
+                      "sourceVersion": "2023.01.20-6",
+                      "customFields": [
+                        {
+                          "name": "idXX",
+                          "value": "245023-2342-2",
+                          "print": true
+                        }
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "device",
+                  "amount"
+                ],
+                "properties": {
+                  "device": {
+                    "type": "string",
+                    "description": "Terminal serial number."
+                  },
+                  "amount": {
+                    "type": "integer",
+                    "description": "Transaction amount. **Amount = netAmount + exemptAmount**.",
+                    "maximum": 99999999,
+                    "minimum": 100
+                  },
+                  "dteType": {
+                    "$ref": "../models/dteType.yaml"
+                  },
+                  "extraData": {
+                    "type": "object",
+                    "description": "Object with additional information.",
+                    "properties": {
+                      "taxIdnValidation": {
+                        "type": "string",
+                        "x-stoplight": {
+                          "id": "4xxooby16trj9"
+                        },
+                        "description": "Merchant's Rol Único Tributario (RUT). Hyphen and check digit."
+                      },
+                      "netAmount": {
+                        "type": "integer",
+                        "x-stoplight": {
+                          "id": "2z4notpmknaqj"
+                        },
+                        "description": "Transaction amount (**IVA included**) that will be used to report to the **Servicio de Impuestos Internos (SII)**."
+                      },
+                      "exemptAmount": {
+                        "type": "integer",
+                        "x-stoplight": {
+                          "id": "k56hun39pyyxf"
+                        },
+                        "description": "Exempt amount of the sale that will be used to report to the **Servicio de Impuestos Internos (SII)**."
+                      },
+                      "sourceName": {
+                        "type": "string",
+                        "description": "Package name of your app.",
+                        "maxLength": 60,
+                        "example": "com.example.app123"
+                      },
+                      "sourceVersion": {
+                        "type": "string",
+                        "maxLength": 40,
+                        "description": "Version number of your application.",
+                        "example": "1.10.4"
+                      },
+                      "customFields": {
+                        "type": "array",
+                        "description": "Object array to add additional information that is stored for reporting and that can be printed on the ticket. Maximum 5 objects per request with a maximum size of 256 characters (sum of name+value).",
+                        "items": {
+                          "type": "object",
+                          "maxProperties": 5,
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "Custom field name. Maximum 28 characters (including `name` and `value` properties).\nCannot contain: `&` or `/`."
+                            },
+                            "value": {
+                              "type": "string",
+                              "description": "Custom field value. Maximum 28 characters (including `name` and `value` properties).\nCannot contain: `&` or `/`.",
+                              "maxLength": 28
+                            },
+                            "print": {
+                              "type": "boolean",
+                              "description": "Set whether or not to print the custom property on the ticket."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "other": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "ucpxr2izxlsk2"
+                    },
+                    "description": "Any other property will be returned in the callback but will not be stored for reporting."
+                  }
+                }
+              },
+              "examples": {
+                "Payment request": {
+                  "value": {
+                    "idempotencyKey": "ef59617f-7633-4aca-965e-e9993f66bdbc",
+                    "amount": 1600,
+                    "device": "TJ44245N20440",
+                    "description": "Servicio de afiliacion",
+                    "dteType": 99,
+                    "extraData": {
+                      "exemptAmount": 1600,
+                      "customFields": [
+                        {
+                          "name": "Contacto",
+                          "value": "9 51221345",
+                          "print": true
+                        }
+                      ],
+                      "sourceName": "POS Pagos",
+                      "sourceVersion": "v1.17v0.2"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Send a payment request from your POS to a compatible terminal over the internet.\n\n\n<!-- theme: danger -->\n\n> #### Deprecated service!\n>\n> This endpoint is available but will be deprecated soon. The new service includes reference IDs needed for operations such as void and refund.<br>We recommend you to migrate to the new service: **[Create payment request (Idempotency)](https://api-docs.kushkipagos.com/docs/card-present-chile/cloud-terminal-api/operations/create-a-remote-payment-v-2-create)**. \n\n> **Rate limit**: 100 requests per minute.<br>\n",
+        "deprecated": true
+      },
+      "servers": [
+        {
+          "url": "https://integrations.payment.haulmer.com",
+          "description": ""
+        }
+      ]
+    },
+    "/PaymentRequest/{paymentRequestId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "paymentRequestId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Request status",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "x-examples": {
+                    "Example 1": {
+                      "paymentRequest": {
+                        "paymentRequestId": 1743,
+                        "amount": 20000,
+                        "device": "PB0420BG6XXXX",
+                        "dteType": 48,
+                        "extraData": {
+                          "customFields": [
+                            {
+                              "name": "test1",
+                              "value": "1",
+                              "print": true
+                            },
+                            {
+                              "name": "test2",
+                              "value": "2",
+                              "print": false
+                            },
+                            {
+                              "name": "test3",
+                              "value": "3",
+                              "print": true
+                            }
+                          ]
+                        },
+                        "status": "Canceled",
+                        "sequenceNumber": null
+                      }
+                    }
+                  },
+                  "properties": {
+                    "paymentRequest": {
+                      "type": "object",
+                      "properties": {
+                        "paymentRequestId": {
+                          "type": "integer",
+                          "x-stoplight": {
+                            "id": "htsnqkihcr45l"
+                          }
+                        },
+                        "amount": {
+                          "type": "integer"
+                        },
+                        "device": {
+                          "type": "string"
+                        },
+                        "dteType": {
+                          "$ref": "../models/dteType.yaml"
+                        },
+                        "extraData": {
+                          "type": "object",
+                          "properties": {
+                            "customFields": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "value": {
+                                    "type": "string"
+                                  },
+                                  "print": {
+                                    "type": "boolean"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "status": {
+                          "$ref": "../models/status.yaml"
+                        },
+                        "sequenceNumber": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Successful request": {
+                    "value": {
+                      "paymentRequest": {
+                        "paymentRequestId": 1743,
+                        "amount": 20000,
+                        "device": "PB0420BG6XXXX",
+                        "dteType": 48,
+                        "extraData": {
+                          "customFields": [
+                            {
+                              "name": "test1",
+                              "value": "1",
+                              "print": true
+                            },
+                            {
+                              "name": "test2",
+                              "value": "2",
+                              "print": false
+                            },
+                            {
+                              "name": "test3",
+                              "value": "3",
+                              "print": true
+                            }
+                          ]
+                        },
+                        "status": "Canceled",
+                        "sequenceNumber": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "error": true,
+                      "code": "MR-160",
+                      "message": "Payment Request doesn't exists"
+                    }
+                  }
+                },
+                "examples": {
+                  "MR-160 - Payment Request doesn't exists": {
+                    "value": {
+                      "error": true,
+                      "code": "MR-160",
+                      "message": "Payment Request doesn't exists"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "error": true,
+                      "code": "MR-160",
+                      "message": "The payment request doesn't exist."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "error": true,
+                      "code": "MR-170",
+                      "message": "Oops! An unexpected error occurred"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-PaymentRequest-paymentRequestId",
+        "x-stoplight": {
+          "id": "4mbq941gx3frp"
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "X-API-Key",
+            "required": true
+          }
+        ],
+        "description": "Get the status of a payment request.\n\n<!-- theme: danger -->\n\n> #### Deprecated service!\n>\n> This endpoint is available but will be deprecated soon. The new service includes reference IDs needed for operations such as void and refund.<br>We recommend you to migrate to the new service: **[Request status (Idempotency)](https://api-docs.kushkipagos.com/docs/card-present-chile/cloud-terminal-api/operations/get-a-remote-payment-v-2-get-payment-request)** \n\n\nRequest status:\n\n* `pending`: request created, waiting for payment information or other action in the payment app.\n* `sent`: payment request is received in the payment app.\n* `canceled`: request cancelled in the payment app.\n* `processing`: processing payment information.\n* `failed`: an error occurred when processing payment information.\n* `completed`: payment information was processed successfully.",
+        "deprecated": true
+      },
+      "servers": [
+        {
+          "url": "https://integrations.payment.haulmer.com",
+          "description": ""
+        }
+      ]
+    },
+    "/RemotePayment/v2/Create": {
+      "post": {
+        "summary": "Create payment request (idempotency)",
+        "tags": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "x-examples": {
+                    "Example 1": {
+                      "idempotencyKey": "ef59617f-7633-4aca-965e-e9993f66bdbc",
+                      "status": "pending",
+                      "amount": 1600,
+                      "deviceId": 690,
+                      "description": "Servicio de afiliación",
+                      "extraData": {
+                        "exemptAmount": 1600,
+                        "customFields": [
+                          {
+                            "name": "Contacto",
+                            "value": "9 51221345",
+                            "print": true
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "properties": {
+                    "idempotencyKey": {
+                      "type": "string",
+                      "description": "Unique key (per transaction) that can be used later to check the status of the transaction\n"
+                    },
+                    "status": {
+                      "$ref": "../models/status.yaml"
+                    },
+                    "amount": {
+                      "type": "integer"
+                    },
+                    "deviceId": {
+                      "type": "integer",
+                      "description": "Terminal serial number.\n\n"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Payment description\n\n"
+                    },
+                    "extraData": {
+                      "type": "object",
+                      "description": "Object with additional information.",
+                      "properties": {
+                        "exemptAmount": {
+                          "type": "integer",
+                          "description": "Exempt amount of the sale that will be used to report to the **Servicio de Impuestos Internos (SII)**."
+                        },
+                        "customFields": {
+                          "type": "array",
+                          "description": "Object array to add additional information that is stored for reporting and that can be printed on the ticket. Maximum 5 objects per request with a maximum size of 256 characters (sum of name+value).",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              },
+                              "print": {
+                                "type": "boolean",
+                                "description": "Set whether or not to print the custom property on the ticket."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Solicitud de pago creada exitosamente": {
+                    "value": {
+                      "idempotencyKey": "ef59617f-7633-4aca-965e-e9993f66bdbc",
+                      "status": "pending",
+                      "amount": 1600,
+                      "deviceId": 690,
+                      "description": "Servicio de afiliación",
+                      "extraData": {
+                        "exemptAmount": 1600,
+                        "customFields": [
+                          {
+                            "name": "Contacto",
+                            "value": "9 51221345",
+                            "print": true
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "error": true,
+                      "code": "MR-110",
+                      "message": "Transaction Amount is less than allowed minimum"
+                    }
+                  }
+                },
+                "examples": {
+                  "Monto menor al mínimo": {
+                    "value": {
+                      "error": true,
+                      "code": "MR-110",
+                      "message": "Transaction Amount is less than allowed minimum"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "error": true,
+                      "code": "MR-000",
+                      "message": "Not Authorized"
+                    }
+                  }
+                },
+                "examples": {
+                  "No autorizado": {
+                    "value": {
+                      "error": true,
+                      "code": "MR-000",
+                      "message": "Not Authorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "error": true,
+                      "code": "MR-170",
+                      "message": "Oops! An unexpected error occurred"
+                    }
+                  }
+                },
+                "examples": {
+                  "Error en la base de datos": {
+                    "value": {
+                      "error": true,
+                      "code": "MR-170",
+                      "message": "Oops! An unexpected error occurred"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "post-RemotePayment-v2-Create",
+        "x-stoplight": {
+          "id": "6wisjhdtrmrc9"
+        },
+        "description": "Send a payment request from your POS to a compatible terminal over the internet.\n\n> **Rate limit**: 1 requests per minute.<br>\n>**Maximum number of pending requests:** A terminal can have a maximum of 5 pending requests queued.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "X-API-Key",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "x-examples": {
+                  "Example 1": {
+                    "idempotencyKey": "ef59617f-7633-4aca-965e-e9993f66bdbc",
+                    "amount": 1600,
+                    "device": "TJ44245N20440",
+                    "description": "Servicio de afiliacion",
+                    "dteType": 99,
+                    "extraData": {
+                      "exemptAmount": 1600,
+                      "customFields": [
+                        {
+                          "name": "Contacto",
+                          "value": "9 51221345",
+                          "print": true
+                        }
+                      ],
+                      "sourceName": "POS Pagos",
+                      "sourceVersion": "v1.17v0.2"
+                    }
+                  }
+                },
+                "required": [
+                  "idempotencyKey",
+                  "amount",
+                  "device"
+                ],
+                "properties": {
+                  "idempotencyKey": {
+                    "type": "string",
+                    "description": "Unique key (per transaction) that can be used later to check the status of the transaction\n\n",
+                    "minLength": 1,
+                    "maxLength": 36
+                  },
+                  "amount": {
+                    "type": "integer",
+                    "description": "Transaction amount. **Amount = netAmount + exemptAmount**."
+                  },
+                  "device": {
+                    "type": "string",
+                    "description": "Terminal serial number."
+                  },
+                  "description": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "ecjlalzfg4rq6"
+                    },
+                    "description": "Payment description"
+                  },
+                  "dteType": {
+                    "$ref": "../models/dteType.yaml"
+                  },
+                  "extraData": {
+                    "type": "object",
+                    "description": "Object with additional information.",
+                    "properties": {
+                      "exemptAmount": {
+                        "type": "integer",
+                        "description": "Exempt amount of the sale that will be used to report to the **Servicio de Impuestos Internos (SII)**."
+                      },
+                      "customFields": {
+                        "type": "array",
+                        "description": "Object array to add additional information that is stored for reporting and that can be printed on the ticket. Maximum 5 objects per request with a maximum size of 256 characters (sum of name+value). <br>**Information submitted here will be mapped as metadata in Kushki.**",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "Custom field name. Maximum 28 characters (including `name` and `value` properties).\nCannot contain: `&` or `/`."
+                            },
+                            "value": {
+                              "type": "string",
+                              "description": "Custom field value. Maximum 28 characters (including `name` and `value` properties).\nCannot contain: `&` or `/`."
+                            },
+                            "print": {
+                              "type": "boolean",
+                              "description": "Set whether or not to print the custom property on the ticket."
+                            }
+                          }
+                        }
+                      },
+                      "sourceName": {
+                        "type": "string",
+                        "description": "Package name of your app."
+                      },
+                      "sourceVersion": {
+                        "type": "string",
+                        "description": "Version number of your application."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "deprecated": true,
+        "x-internal": true
+      },
+      "servers": [
+        {
+          "url": "https://integrations.payment.haulmer.com",
+          "description": ""
+        }
+      ]
+    },
+    "/RemotePayment/v2/GetPaymentRequest/{idempotencyKey}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "idempotencyKey",
+          "in": "path",
+          "required": true,
+          "description": "Unique identifier of the payment request"
+        }
+      ],
+      "get": {
+        "summary": "Request status (idempotency)",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "x-examples": {
+                    "Example 1": {
+                      "idempotencyKey": "ef59617f-7633-4aca-965e-e9993f66bdbc",
+                      "status": "pending",
+                      "amount": 1600,
+                      "deviceId": 690,
+                      "description": "Servicio de afiliación",
+                      "extraData": {
+                        "exemptAmount": 1600,
+                        "customFields": [
+                          {
+                            "name": "Contacto",
+                            "value": "9 51221345",
+                            "print": true
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "properties": {
+                    "idempotencyKey": {
+                      "type": "string",
+                      "description": "Unique key per transaction",
+                      "minLength": 1,
+                      "maxLength": 36
+                    },
+                    "status": {
+                      "$ref": "../models/status.yaml"
+                    },
+                    "amount": {
+                      "type": "integer",
+                      "description": "Amount of request"
+                    },
+                    "device": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "406cw3ny2z2v4"
+                      },
+                      "description": "Serial number of the associated device."
+                    },
+                    "dteType": {
+                      "$ref": "../models/dteType.yaml",
+                      "x-stoplight": {
+                        "id": "v4e9dahvs7mrs"
+                      }
+                    },
+                    "extraData": {
+                      "type": "object",
+                      "properties": {
+                        "exemptAmount": {
+                          "type": "integer"
+                        },
+                        "customFields": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              },
+                              "print": {
+                                "type": "boolean"
+                              }
+                            }
+                          }
+                        },
+                        "sourceName": {
+                          "type": "string",
+                          "x-stoplight": {
+                            "id": "hnkddobrt22gt"
+                          },
+                          "description": "Package name of your app."
+                        },
+                        "sourceVersion": {
+                          "type": "string",
+                          "x-stoplight": {
+                            "id": "vrb0c6gpeb356"
+                          },
+                          "description": "Version number of your application."
+                        }
+                      }
+                    },
+                    "transactionReference": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "90cp919npvs8x"
+                      },
+                      "description": "Transaction reference. This can be used for voids or refunds."
+                    },
+                    "acquirerId": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "4ivgjmwasun2u"
+                      },
+                      "description": "Acquirer's identifier. Corresponds to the `ticket_number` in Kushki"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "error": true,
+                      "code": "INVALID_MODEL",
+                      "message": "The request contains invalid data."
+                    }
+                  }
+                },
+                "examples": {
+                  "Solicitud inválida": {
+                    "value": {
+                      "error": true,
+                      "code": "INVALID_MODEL",
+                      "message": "The request contains invalid data."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "error": true,
+                      "code": "MR-000",
+                      "message": "Not Authorized"
+                    }
+                  }
+                },
+                "examples": {
+                  "No autorizado": {
+                    "value": {
+                      "error": true,
+                      "code": "MR-000",
+                      "message": "Not Authorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "error": true,
+                      "code": "MR-160",
+                      "message": "The payment request doesn't exist."
+                    }
+                  }
+                },
+                "examples": {
+                  "Solicitud de pago no existe": {
+                    "value": {
+                      "error": true,
+                      "code": "MR-160",
+                      "message": "The payment request doesn't exist."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "error": true,
+                      "code": "MR-170",
+                      "message": "Oops! An unexpected error occurred"
+                    }
+                  }
+                },
+                "examples": {
+                  "Error en la base de datos": {
+                    "value": {
+                      "error": true,
+                      "code": "MR-170",
+                      "message": "Oops! An unexpected error occurred"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "GetPaymentRequest-idempotencyKey",
+        "x-stoplight": {
+          "id": "4vpems34f60kx"
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "X-API-Key",
+            "required": true
+          }
+        ],
+        "deprecated": true,
+        "x-internal": true
+      },
+      "servers": [
+        {
+          "url": "https://integrations.payment.haulmer.com",
+          "description": ""
+        }
+      ]
+    }
+  },
+  "components": {
+    "schemas": {}
+  }
+}

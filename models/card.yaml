@@ -1,0 +1,11 @@
+title: card
+x-stoplight:
+  id: ca8t9mo22s2wu
+type: object
+properties:
+  card_holder_name:
+    type: string
+    x-stoplight:
+      id: qr7vtbtap0308
+examples:
+  - card_holder_name: John Doe
